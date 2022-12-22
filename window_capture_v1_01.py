@@ -6,7 +6,7 @@ import os # for file handling
 from PIL import ImageGrab # for grabbing images only at present
 from time import perf_counter # for performance timing
 
-
+ 
 
 # -- testing functionality --
 
