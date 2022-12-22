@@ -4,12 +4,10 @@ import win32gui
 import win32con
 import numpy as np
 
-
 # -- notes -- 
-# - as per v0.03 screencap at around 45-55 fps on avg
+# - as per this version screencap at around 30-35 fps on average, peaks at around 42, lowest around 25 (tho tbf one outliner 19)
 
 class WindowCap:
-
     # -- class constructor --
     def __init__(self, window_name):
 
@@ -19,21 +17,9 @@ class WindowCap:
         if not self.hwnd:
             raise Exception(f"Window Not Found: {window_name}")
 
-        # -- dynamically crop the size of our windowCap window to the size of the window_name window we are working with using the window rect to get the width and height --
-        window_rect = win32gui.GetWindowRect(self.hwnd) # [0] and [1] = x upper left corner of window, y upper left - then - [2] and [3] =  bottom right, bottom right
-        self.w = window_rect[2] - window_rect[0] # previously 1520
-        self.h = window_rect[3] - window_rect[1] # previously 750
-
-        # -- make small adjustments to the width, height, and the windows offset position so we only crop out the game window and not the bluestacks ui around the perimeter --
-        x_offset = 32
-        self.y_offset = 30
-        self.w = self.w - x_offset
-        self.h = self.h - self.y_offset
-
-        # -- get the true coordinates, adjusted due to the bluestacks ui edge offset above so have more logical positions for window interactions --  
-        self.true_x = window_rect[0] + x_offset
-        self.true_y = window_rect[1] + self.y_offset
-
+        # -- define vars for window, screensize is for 1280 x 720 in bluestacks v10 --
+        self.w = 1520 
+        self.h = 750
 
     def get_screencap(self):
         """ uses win32 api for fastest possible window capture so the returned screencap can also be used for live botting commands """
@@ -45,7 +31,7 @@ class WindowCap:
         dataBitMap = win32ui.CreateBitmap()
         dataBitMap.CreateCompatibleBitmap(dcObj, self.w, self.h)
         cDC.SelectObject(dataBitMap)
-        cDC.BitBlt((0,0), (self.w, self.h), dcObj, (0, self.y_offset), win32con.SRCCOPY) # assuming this is bitmap blit, is pretty much just pygame lol, thats so awesome
+        cDC.BitBlt((0,0), (self.w, self.h), dcObj, (0,0), win32con.SRCCOPY)
 
         # -- disabled : save screenshot --
         want_save = False
@@ -70,9 +56,3 @@ class WindowCap:
 
         # -- return the screencap img --
         return img
-
-
-    def get_true_pos(self, pos): # legit this is exactly the same as it is in pygame winner winner as per the camera position which is SO awesome
-        """ translate the position on the screenshot img to the true img based on any offset to the window 
-        - note : this is not calculated dynamically only on initialising the window, so moving the client window after launch will return incorrect positions """
-        return (pos[0] + self.true_x, pos[1] + self.true_y)

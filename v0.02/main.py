@@ -26,6 +26,9 @@ def main():
         # -- get a full-screen screenshot -- 
         screenshot = wincap.get_screencap()
 
+        # -- convert our screenshot img to bgr from opencv --
+        screenshot = cv.cvtColor(screenshot, cv.COLOR_RGB2BGR) 
+
         # -- print current frame rate for debugging, use floating point format string to change decimal precision --
         current_time = perf_counter()
         print(f"FPS : {1 / (current_time - processing_timer):.2f}")
