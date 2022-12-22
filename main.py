@@ -8,7 +8,7 @@ from time import perf_counter # for performance timing
 
 # -- internal imports --
 from cls_windowCap import WindowCap
-
+ 
 # -- test main --
 def main():
     # -- create a new instance of our screen capture class using the Max Performance window (which is the name of the Bluestacks game)
