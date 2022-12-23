@@ -10,17 +10,39 @@ from time import perf_counter, sleep # for performance timing, sleeping
 from cls_windowCap import WindowCap
 
 
-# -- temp ongoing notes --
-# so really what i want first is it to detect this login page and then prompt us, so to start do sumnt like this
-# - wait for login page
+# -- constants --
+COMMAND_DELAY = 1.00
+
+# -- new test stuff --
+def get_mouse_pos():
+    pos = pyautogui.position()
+    print(pos)
+    return pos
+
+def initialise_pyautogui():
+    pyautogui.FAILSAFE = True
+
+def login():
+    print("running login")
+    pyautogui.moveTo(869, 617, 0.5)
+    sleep(COMMAND_DELAY)
+    pyautogui.click()
+
+
+# so really what i want first is it to detect this login page and then prompt us
 # - use the google riot and facebook symbols since they are also login buttons bosh
 # - consider a pyqt5 menu when you CAN login, to prompt for which account etc
-# - remember this is just guna be the data extraction and analytics part
 
+# actually yh so to start do sumnt like
+# - wait for login page
+# - remember this is just guna be the data extraction and analytics part
+# - i will make a new, different version for full botting in future
 
 
 # -- test main --
 def main():
+    # -- initialise failsafe --
+    initialise_pyautogui()
 
     # -- create a new instance of our screen capture class using the Max Performance window (which is the name of the Bluestacks game)
     wincap = WindowCap('Max Performance')
@@ -60,7 +82,6 @@ def main():
 
 # -- driver -- 
 main()
-
 
 
 

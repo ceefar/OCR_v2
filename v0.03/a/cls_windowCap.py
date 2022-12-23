@@ -12,15 +12,12 @@ class WindowCap:
  
     # -- class constructor --
     def __init__(self, window_name):
-        # in the case no Window Name is provided we'll instead just capture the entire screen (no additional functionality on top yet tho tbf)
-        if window_name is None:
-            self.hwnd = win32gui.GetDesktopWindow()
-        else:
-            # -- get only the image data from the window we're interested in to significantly improve the performance --
-            self.hwnd = win32gui.FindWindow(None, window_name)
-            # -- throws an exception if it cant find the window --
-            if not self.hwnd:
-                raise Exception(f"Window Not Found: {window_name}")
+
+        # -- get only the image data from the window we're interested in to significantly improve the performance --
+        self.hwnd = win32gui.FindWindow(None, window_name) 
+        # -- throws an exception if it cant find the window --
+        if not self.hwnd:
+            raise Exception(f"Window Not Found: {window_name}")
 
         # -- dynamically crop the size of our windowCap window to the size of the window_name window we are working with using the window rect to get the width and height --
         window_rect = win32gui.GetWindowRect(self.hwnd) # [0] and [1] = x upper left corner of window, y upper left - then - [2] and [3] =  bottom right, bottom right
