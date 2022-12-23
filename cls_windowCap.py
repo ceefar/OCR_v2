@@ -79,3 +79,8 @@ class WindowCap:
         """ translate the position on the screenshot img to the true img based on any offset to the window 
         - note : this is not calculated dynamically only on initialising the window, so moving the client window after launch will return incorrect positions """
         return (pos[0] + self.true_x, pos[1] + self.true_y)
+
+
+# -- driver --
+if __name__ == "__main__":
+    pass
