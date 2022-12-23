@@ -21,10 +21,6 @@ from cls_windowCap import WindowCap
 # so initially it may be worth only checking the area the we expect those log in buttons to be
 # then add in a check everywhere if it doesnt find a match after a set amount of time
 
-# for write up
-# - note that this particular bit could obvs have been done pretty easy just doing it manually (if on screen then use console to run functionalities)
-# - but imo its much better to do things dynamically from the start, then minor ui changes shouldnt affect the functionality
-# - and the likelihood of the functionality being compatible with a large array of different device sizes is much more likely doing it this way too
 
 
 
@@ -146,9 +142,9 @@ def test(find_img_path="test_imgs/login_rito.png", base_img_path="test_imgs/logi
 
 
 
-# get_click_positions(debug_mode="rectangles")
-points = get_click_positions(debug_mode="points")
-print(points)
+get_click_positions(debug_mode="points")
+get_click_positions(debug_mode="rectangles")
+test()
 quit()
 
 
