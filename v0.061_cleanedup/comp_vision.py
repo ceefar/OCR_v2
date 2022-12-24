@@ -44,11 +44,10 @@ def get_click_positions(find_img_path, base_img, threshold=0.95, debug_mode=None
             rectangles.append(rect) # add a copy of the rect so that group rect doesnt skip over the edge case of finding only 1 rect (again, more for a live botting situation but leaving the code in since it may be useful in future)
 
         rectangles, weights = cv.groupRectangles(rectangles, 1, 0.5) # 2nd param = grouping threshold : 1 group when just one overlap (basically), 0 too low, 2+ means needing lots of overlapping rects to group, 3rd param = eps : how close the rects need to be to group them, 0.5 is good start, 1 & 1.5 also good starting points, increasing will group rects that are further away, smaller means they will need to be practically on top of each other to group 
-        # print(rectangles)
+
         
         points = []
         if len(rectangles):
-            # print(f"Match Template Search Successful")
 
             line_colour = (255, 255, 0) # pink : 255, 0, 255
             line_type = cv.LINE_4
