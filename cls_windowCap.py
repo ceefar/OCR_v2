@@ -5,9 +5,6 @@ import win32con
 import numpy as np
 
 
-# -- notes -- 
-# - as per v0.03 screencap at around 45-55 fps on avg
-
 class WindowCap:
  
     # -- class constructor --
