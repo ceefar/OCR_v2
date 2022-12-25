@@ -23,13 +23,12 @@ def storeInQueue(f):
 # -- initialise test vars --
 test_state = 0
 temp_inc = 0
-current_state = "logged_in"
 
 
 # -- actually appropriate global vars --
 account_username = "hiitzsenna4" # will make these secrets tho tbf
 account_password = "e150upm4n"
-is_logged_in = True
+is_logged_in = False
 is_bot_active = False # bool to ensure we only have one open thread for bot actions
 
 # -- ensure pyautogui failsafe is active --
@@ -64,47 +63,36 @@ def checker_bot_test(screenshot):
     # -- free up resources and start a new thread by using resetting global --
     is_bot_active = False
     
-
-
-def click_on_user_profile(screenshot):
-    global is_bot_active, current_state
-    print(f"Attempting To Go To User Profile Page")
+@storeInQueue
+def go_to_user_profile_home(screenshot):
+    global is_bot_active
+    print(f"Start Go To User Profile Home")
     locs, find_img = get_template_matches_at_threshold("test_imgs/purenub_user_icon_test_withoutLevel_img.png", screenshot, threshold=0.99)
     rects = get_matched_rectangles(find_img, locs)
     points, ss_with_points = draw_points(rects, screenshot)
     if points:
-        print("Found User Profile. Navigating...")
+        print("Attempting Click User Profile...")
         target = wincap.get_true_pos(points[0])
         pyautogui.moveTo(x = target[0], y = target[1])
         pyautogui.click()
-        sleep(2) # sleep at the end to give time for the screen to update from the interaction 
-        current_state = "user_profile_home" # < OBVS TEMP
-        is_bot_active = False
-    else:
-        # if we dont find points, sleep for 5 seconds before rerunning this code to try again
-        print(f"Couldnt Find Given Image - Trying Again in 4 seconds")
-        sleep(4)  
-        is_bot_active = False
+        return ss_with_points
+    sleep(2)
 
-
-def click_on_image(screenshot, path_to_img):
-    global is_bot_active, current_state
-    print(f"Attempting Click")
+@storeInQueue
+def click_on_image(screenshot, path_to_img="test_imgs/purenub_user_icon_test_withoutLevel_img.png"):
+    global is_bot_active
+    print(f"Start Go To User Profile Home")
     locs, find_img = get_template_matches_at_threshold(path_to_img, screenshot, threshold=0.99)
     rects = get_matched_rectangles(find_img, locs)
     points, ss_with_points = draw_points(rects, screenshot)
     if points:
-        print("Found Image. Clicking...")
+        print("Attempting Click User Profile...")
         target = wincap.get_true_pos(points[0])
         pyautogui.moveTo(x = target[0], y = target[1])
         pyautogui.click()
-        sleep(2) # sleep at the end to give time for the screen to update from the interaction 
-        is_bot_active = False
-    else:
-        # if we dont find points, sleep for 5 seconds before rerunning this code to try again
-        print(f"Couldnt Find Given Image - Trying Again in 4 seconds")
-        sleep(4)  
-        is_bot_active = False
+        return ss_with_points
+    sleep(2)
+
 
 
 
@@ -124,23 +112,30 @@ while True:
         print(f"FPS : {1 / (current_time - processing_timer):.2f}")
         processing_timer = perf_counter()
 
+
+    new_ss = False
+
     # -- test bot actions using multithreading --
     if not is_bot_active:
+        # -- activate the bot first for consistency --
+        is_bot_active = True
 
         # -- if not logged in run the log-in check in a new thread, so we dont clog up the output display blit while processing and waiting --
         if not is_logged_in:
             print(f"Starting Login Thread...\n")
-            is_bot_active = True
             t = Thread(target=checker_bot_test, args=(screenshot,))
             t.start()
     
         # -- if not logged in run the log-in check in a new thread, so we dont clog up the output display blit while processing and waiting --
         if is_logged_in:
-            if current_state != "user_profile_home":
-                is_bot_active = True
-                print(f"Starting Click Profile Thread...\n")
-                t = Thread(target=click_on_user_profile, args=(screenshot,))
-                t.start()    
+            print(f"Starting Click Profile Thread...\n")
+            t = Thread(target=go_to_user_profile_home, args=(screenshot,))
+            t.start()    
+            # use queue to get back our img data from the thread
+            my_data = my_queue.get()
+            # if the function ran in the thread returned img data, then display it super quick (sure its only a frame rn but think ill use pyqt5 later to add multiple vision sources)
+            if len(my_data):
+                cv.imshow("Results", new_ss)
 
     # -- blit the current screencap --
     cv.imshow("Results", screenshot)
@@ -159,20 +154,35 @@ if __name__ == "__main__":
     ...
 
 
-# COMMIT & NEW BRANCH FIRST PLEASE!
-# - note if you have to do a refactor here just do it as its preferable
-# ok so was nice test know what im actually guna do now
-# so do it purely with verification like ive just said before
-# so from here on out do it by starting with the just base home menu
-# but really the first thing that will happen is
-# - confirm which page i am on
-# - if it confirms the home page
-# - it will then show the options
-# ...
-# for now just between battlelog home and profile page is fine 
-# - quickly slide in some pyqt5 even if its basic af?
-# ...
-# basically once you've nailed that programmatically and properly...
+
+# in pyqt5
+# to do things like current page
+# buttons for interactions
+# and even an option to see the current computer vision (or last computer vision or last action saved as an image or sumnt) <<= ok so all that stuff is defo for future lol
+
+
+# so sectioned out enough to be happy with it for now
+# plus multi-threading working nicely
+# and have freed up quite a few extra resources during the refactor which is nice
+# so....
+# now its the below thing you want to do
+# - ok ive confirmed im on the home page
+# - show the user what actions they can take from the home page
+# - take the action 
+# - confirm the next page and show the actions that can be taken 
+#   - could use deque or a stack or whatever to store an order of the actions (probably a decent idea tbf but is also long and not at all required lol) 
+
+# so start by adding the home options
+# starting from top left
+
+
+# THEN NO CAP
+# A PYQT5 OR TERMINAL
+# BUT A WAY TO TOGGLE BETWEEN GOING TO BATTLELOG, HOME, OR MY USER PROFILE PAGE, USING TERMINAL OR QT
+# - with the thought being to some kind of basic flow 
+# - where the bot confirms where it is
+# - and then gives relevant options on what to do
+# - bosh love it
 
 
 # THEN GET ON TO THIS...
@@ -182,7 +192,7 @@ if __name__ == "__main__":
 # - remember saving abd organising the data properly from the start is important
 
 
-# THEN IN MORE DETAIL/NOTES/THOUGHTS...
+# so we want
 # list all of the matches on the current page
 # and create all our initial first folders me thinks
 # having the match be saved by 
@@ -213,11 +223,6 @@ if __name__ == "__main__":
 # - should check riots own json file yanno!
 #   - 100% compatability with any kinda image creator to work with both their data and my data would be insanely awesome
 
-
-# in pyqt5
-# to do things like current page
-# buttons for interactions
-# and even an option to see the current computer vision (or last computer vision or last action saved as an image or sumnt) <<= ok so all that stuff is defo for future lol
 
 
 # -- add this in write up --
