@@ -9,7 +9,7 @@ from threading import Thread
 
 # -- internal imports --
 from cls_windowCap import WindowCap
-from comp_vision import *
+from comp_vision import get_click_positions
 
 
 # -- initialise test vars --
@@ -143,21 +143,10 @@ processing_timer = perf_counter()
 def checker_bot_test(screenshot):
     # obvs will make this a bot class and have unique actions but for now still testing stuff out 
     global is_bot_active, is_logged_in
-
     # -- sleep for a few seconds to allow pages to load, and to allow for incrememntal rerun if not initially successful (due to slow loading) --
     sleep(2)
-
-    # -- 
-    # locs, find_img = get_template_matches_at_threshold("test_imgs/play_btn_test_1_img.png", screenshot, threshold=0.99)
-    # rects = get_matched_rectangles(find_img, locs)
-    # points = draw_points(rects, screenshot)
-    # if points:
-    # if rects.all():
-    # if len(rects):
-
-    # --
-    success, find_img = get_template_matches_at_threshold("test_imgs/play_btn_test_1_img.png", screenshot, threshold=0.99, only_confirm_mathces_at_threshold=True)
-    if success:
+    points = get_click_positions("test_imgs/play_btn_test_1_img.png", screenshot, 0.99, "rectangles")
+    if points:
         print(f"Found Play Button - Login Success Confirmed")
         print(f"\nCurrent Page = Home")
         is_logged_in = True
@@ -178,6 +167,7 @@ while True:
         current_time = perf_counter()
         print(f"FPS : {1 / (current_time - processing_timer):.2f}")
         processing_timer = perf_counter()
+
 
     # -- test bot actions using multithreading --
     if not is_bot_active:
@@ -213,16 +203,12 @@ if __name__ == "__main__":
 # and even an option to see the current computer vision (or last computer vision or last action saved as an image or sumnt) <<= ok so all that stuff is defo for future lol
 
 
-# so sectioned out enough to be happy with it for now
-# plus multi-threading working nicely
-# and have freed up quite a few extra resources during the refactor which is nice
-# so....
-# now its the below thing you want to do
-# - ok ive confirmed im on the home page
-# - show the user what actions they can take from the home page
-# - take the action 
-# - confirm the next page and show the actions that can be taken 
-#   - could use deque or a stack or whatever to store an order of the actions (probably a decent idea tbf but is also long and not at all required lol) 
+# BUT FIRST
+# - actually refactor this so we have it working with a detection image by...
+# - having seperate get rectangles
+# - and seperate draw rectangles 
+# - both in the vision module and actually just make vision a class now tbf
+#   - check repo for sure if not tut 
 
 
 # THEN NO CAP

@@ -41,9 +41,9 @@ def draw_crosses(search_img, points):
     return search_img
 
 
-# -- new detection testing stuff --
+# -- template matching --
 
-def get_template_matches_at_threshold(find_img_path, base_img, threshold=0.95, only_confirm_mathces_at_threshold=False):
+def get_template_matches_at_threshold(find_img_path, base_img, threshold=0.95):
     # load images 
     find_img = cv.imread(find_img_path, cv.IMREAD_COLOR) # 0, -1, cv.IMREAD_UNCHANGED, cv.IMREAD_REDUCED_COLOR_2
     # returns multi-dimensional array (as : y, x - dont ask me why) of each position with its confidence score
@@ -61,21 +61,13 @@ def get_template_matches_at_threshold(find_img_path, base_img, threshold=0.95, o
     want_results_count = True
     if want_results_count:
         print(f"Results @ threshold {threshold} = {locations[0].size}\n") 
-    # -- new test --
-    # if you only want to confirm we hit the threshold and dont care about the actual points
-    if only_confirm_mathces_at_threshold:
-        # if there are results over the threshold 
-        if locations[0].size:
-            # return true plus the preloaded img <<= just make this a function during next refactor duhhhhhh
-            return True, find_img
-        else:
-            return False, find_img
-    # return the resulting list of locations over the threshold
+    # return the resulting list of locations
     return locations, find_img
 
 
-def get_matched_rectangles(find_img, locations):
-    """ for creating then grouping rects from a list of locations """
+# -- new detection testing --
+
+def get_rectangles(find_img, locations):
     # -- if the locations arg isnt empty --
     if locations:
         # get search/find image dimensions 

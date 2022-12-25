@@ -45,7 +45,7 @@ class WindowCap:
         dataBitMap = win32ui.CreateBitmap()
         dataBitMap.CreateCompatibleBitmap(dcObj, self.w, self.h)
         cDC.SelectObject(dataBitMap)
-        cDC.BitBlt((0,0), (self.w, self.h), dcObj, (0, self.y_offset), win32con.SRCCOPY) # bit blit, aka bit block transfer, basically just like pygame lol thats so kewl
+        cDC.BitBlt((0,0), (self.w, self.h), dcObj, (0, self.y_offset), win32con.SRCCOPY) # assuming this is bitmap blit, is pretty much just pygame lol, thats so awesome
 
         # -- disabled : save screenshot, think this errors if you try to open the bitmap while the script is updating it btw, not using anyway so should just remove --
         want_save = False

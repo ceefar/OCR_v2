@@ -9,7 +9,7 @@ from threading import Thread
 
 # -- internal imports --
 from cls_windowCap import WindowCap
-from comp_vision import *
+from comp_vision import get_click_positions
 
 
 # -- initialise test vars --
@@ -108,19 +108,10 @@ def login_bot_test(screenshot):
         return True
     # -- then here just sumnt super simple to confirm we are actually logged in? --
 
+
 def login_bot():
     # confirm if there is a login button first
-    points = get_click_positions("test_imgs/login_existing_login_btn_img.png", screenshot, 0.99, "rectangles")
-    # -- if we match the login template, move the mouse to the target and click it --
-    if points:
-        target = wincap.get_true_pos(points[0])
-        # -- if we hit 100 on our counter, click the login button, and reset the counter --
-        print(f"\nInitialising Login")
-        print(f"Rito Login Target Pos = {target}\n")
-        pyautogui.moveTo(x = target[0], y = target[1]) # pyautogui.click(x = target[0], y = target[1])
-        sleep(2)
-        pyautogui.click()
-
+    pass
 
 
 # -- actually appropriate global vars --
@@ -138,34 +129,6 @@ wincap = WindowCap('Max Performance')
 # -- initialise performance timer --
 processing_timer = perf_counter()
 
-
-# -- test bot to check if we are logged in and on the home page --
-def checker_bot_test(screenshot):
-    # obvs will make this a bot class and have unique actions but for now still testing stuff out 
-    global is_bot_active, is_logged_in
-
-    # -- sleep for a few seconds to allow pages to load, and to allow for incrememntal rerun if not initially successful (due to slow loading) --
-    sleep(2)
-
-    # -- 
-    # locs, find_img = get_template_matches_at_threshold("test_imgs/play_btn_test_1_img.png", screenshot, threshold=0.99)
-    # rects = get_matched_rectangles(find_img, locs)
-    # points = draw_points(rects, screenshot)
-    # if points:
-    # if rects.all():
-    # if len(rects):
-
-    # --
-    success, find_img = get_template_matches_at_threshold("test_imgs/play_btn_test_1_img.png", screenshot, threshold=0.99, only_confirm_mathces_at_threshold=True)
-    if success:
-        print(f"Found Play Button - Login Success Confirmed")
-        print(f"\nCurrent Page = Home")
-        is_logged_in = True
-    # -- free up resources and start a new thread by using resetting global --
-    is_bot_active = False
-    
-
-
 # -- loop until quit --
 while True:
 
@@ -173,25 +136,27 @@ while True:
     screenshot = wincap.get_screencap()
 
     # -- print current frame rate for debugging, use floating point format string to change decimal precision - for proper version use pyqt for info and just have fps in terminal bosh --
-    want_framerate = False
+    want_framerate = True
     if want_framerate:
         current_time = perf_counter()
         print(f"FPS : {1 / (current_time - processing_timer):.2f}")
         processing_timer = perf_counter()
 
-    # -- test bot actions using multithreading --
-    if not is_bot_active:
-        # -- activate the bot first for consistency --
-        is_bot_active = True
-        # -- if not logged in run the log-in check in a new thread, so we dont clog up the output display blit while processing and waiting --
-        if not is_logged_in:
-            print(f"Starting Login Thread...\n")
-            t = Thread(target=checker_bot_test, args=(screenshot,))
-            t.start()
-    
-    # -- blit the current screencap --
-    cv.imshow("Results", screenshot)
+    if not is_logged_in:
+        completed = login_bot_test(screenshot)
+        if completed:
+            is_logged_in = True
 
+    if is_logged_in:
+        cv.imshow("Results", screenshot)
+        print("Now Test Multi-Threading")
+
+    # # -- test bot actions using multithreading --
+    # if not is_bot_active:
+    #     is_bot_active = True
+    #     t = Thread(target=login_bot, args=(screenshot,))
+    #     t.start()
+    
     # -- if 1ms per loop to check for q press, if pressed close the window --
     if cv.waitKey(1) == ord('q'):
         cv.destroyAllWindows()
@@ -207,34 +172,28 @@ if __name__ == "__main__":
 
 
 
-# in pyqt5
-# to do things like current page
-# buttons for interactions
-# and even an option to see the current computer vision (or last computer vision or last action saved as an image or sumnt) <<= ok so all that stuff is defo for future lol
+# THEN DO A QUICK LOGIN WHERE IT JUST DETECTS THE BUTTON AND LOGS IN
+# THEN CONFIRMS ITS LOGGED IN AND SETS A STATE FOR IT
+
+# THEN DO THE SMALL REFACTOR 
+# - WINDOW SHOW IS IN MAIN
+# - HAVE THINGS RETURN TO MAIN THAT YOU NEED
+
+# THEN WHEN THAT STATE IS TRIGGERED 
+# WE TRIGGER A MULTITHREADING BOT FUNCTION THAT HAS A SMALL SLEEP IN IT TO TEST IT WORKS (IT DOESNT LOCK UP THE SCREEN)
+
+# BOSH!
+# THEN 
+# JUST CONTINUE TO THE STUFF BELOW LEGIT SAVING ETC
 
 
-# so sectioned out enough to be happy with it for now
-# plus multi-threading working nicely
-# and have freed up quite a few extra resources during the refactor which is nice
-# so....
-# now its the below thing you want to do
-# - ok ive confirmed im on the home page
-# - show the user what actions they can take from the home page
-# - take the action 
-# - confirm the next page and show the actions that can be taken 
-#   - could use deque or a stack or whatever to store an order of the actions (probably a decent idea tbf but is also long and not at all required lol) 
+
+# ok so do wanna quickly confirm multithreading is working fine
+# for this just run the log-in script
+# then write a bot action thats more appropriate to test threading works fine
+# since login only ever happens once, it really doesnt need to be in a thread tbh
 
 
-# THEN NO CAP
-# A PYQT5 OR TERMINAL
-# BUT A WAY TO TOGGLE BETWEEN GOING TO BATTLELOG, HOME, OR MY USER PROFILE PAGE, USING TERMINAL OR QT
-# - with the thought being to some kind of basic flow 
-# - where the bot confirms where it is
-# - and then gives relevant options on what to do
-# - bosh love it
-
-
-# THEN GET ON TO THIS...
 # - start by just doing the average rank of each player in a given match, saving their name and rank, and obvs the result of the match
 # - then add in a kda var to this too
 # - remember and then was even guna consider template matching for champions too!
