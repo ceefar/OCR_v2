@@ -120,7 +120,7 @@ while True:
             t.start()    
             # use queue to get back our img data from the thread
             my_data = my_queue.get()
-            # 
+            # if the function ran in the thread returned img data, then display it super quick (sure its only a frame rn but think ill use pyqt5 later to add multiple vision sources)
             if len(my_data):
                 cv.imshow("Results", new_ss)
 
