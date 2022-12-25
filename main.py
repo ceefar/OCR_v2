@@ -159,8 +159,7 @@ if __name__ == "__main__":
     ...
 
 
-# COMMIT & NEW BRANCH FIRST PLEASE!
-# - note if you have to do a refactor here just do it as its preferable
+# MIGHT BE WORTH REWRITING THIS PAGE FROM SCRATCH NOW YANNO!!!!! <<<<<<<<<
 # ok so was nice test know what im actually guna do now
 # so do it purely with verification like ive just said before
 # so from here on out do it by starting with the just base home menu
