@@ -11,116 +11,18 @@ from threading import Thread
 from cls_windowCap import WindowCap
 from comp_vision import *
 
+# new test
+import queue
+my_queue = queue.Queue()
+
+def storeInQueue(f):
+  def wrapper(*args):
+    my_queue.put(f(*args))
+  return wrapper
 
 # -- initialise test vars --
 test_state = 0
 temp_inc = 0
-
-# -- super duper temp test bot actions using states --
-def login_bot_test(screenshot):
-    # -- set vars to globals -- 
-    global test_state, temp_inc
-    # -- start login --
-    if test_state == 0:
-        temp_inc += 1
-        if temp_inc >= 30:
-            temp_inc = 0
-            test_state = 1
-            print(f"\nStarting Login...")
-    # -- home page state --
-    if test_state == 1:
-        # -- get points for login --
-        points = get_click_positions("test_imgs/login_rito.png", screenshot, 0.94, "rectangles")
-        # -- if we match the login template, move the mouse to the target and click it --
-        if points:
-            target = wincap.get_true_pos(points[0])
-            # -- create a faux pause in action to allow for loading and interaction times --
-            temp_inc += 1
-            # -- if we hit 100 on our counter, click the login button, and reset the counter --
-            if temp_inc >= 30:
-                print(f"\nInitialising Login")
-                print(f"Rito Login Target Pos = {target}\n")
-                pyautogui.moveTo(x = target[0], y = target[1]) # pyautogui.click(x = target[0], y = target[1])
-                pyautogui.click()
-                temp_inc = 0
-                test_state = 2
-    # -- login page state --
-    if test_state == 2:
-        # N0TE - need a funct that can just do the ocr without the return (could just refactor existing tbf, or save for a future, more finalised version)
-        login_page_points = get_click_positions("test_imgs/login_text_img.png", screenshot, 0.96, "rectangles")
-        if login_page_points:
-            test_state = 3
-    # -- login page state part 2 : username select --
-    if test_state == 3:
-        username_points = get_click_positions("test_imgs/login_username_img.png", screenshot, 0.97, "rectangles")
-        temp_inc += 1
-        if temp_inc >= 30:
-            if username_points:  
-                print(f"Adding Username")
-                target = wincap.get_true_pos(username_points[0])
-                pyautogui.moveTo(x = target[0], y = target[1]) # pyautogui.click(x = target[0], y = target[1])
-                pyautogui.click()
-                temp_inc = 0
-                test_state = 4
-    # -- login page state part 3 : username entry --
-    if test_state == 4:
-        temp_inc += 1
-        get_click_positions("test_imgs/login_username_selected_img.png", screenshot, 0.999, "points")
-        if temp_inc >= 30:
-            pyautogui.write(account_username) 
-            temp_inc = 0
-            test_state = 5
-    # -- login page state part 4 : password select --
-    if test_state == 5:
-        password_points = get_click_positions("test_imgs/login_password_img.png", screenshot, 0.99, "rectangles")
-        temp_inc += 1
-        if temp_inc >= 30:
-            if password_points:
-                print(f"Adding Password")
-                target = wincap.get_true_pos(password_points[0])
-                pyautogui.moveTo(x = target[0], y = target[1])
-                pyautogui.click()
-                temp_inc = 0
-                test_state = 6
-    # -- login page state part 5 : password selection --
-    if test_state == 6:
-        temp_inc += 1
-        get_click_positions("test_imgs/login_password_selected_img.png", screenshot, 0.99, "points")
-        if temp_inc >= 30:
-            pyautogui.write(account_password) 
-            temp_inc = 0
-            test_state = 7
-    # -- login page state part 6 : login confirmation --
-    if test_state == 7:
-        login_points = get_click_positions("test_imgs/login_confirm_btn_img.png", screenshot, 0.96, "points")
-        temp_inc += 1
-        if temp_inc >= 30:
-            if login_points:
-                print("Attempting Log In...")
-                target = wincap.get_true_pos(login_points[0])
-                pyautogui.moveTo(x = target[0], y = target[1])
-                pyautogui.click()
-                temp_inc = 0
-                test_state = 8
-    # -- login page state part 7 : login & chill --
-    if test_state == 8:
-        cv.imshow("Results", screenshot)
-        return True
-    # -- then here just sumnt super simple to confirm we are actually logged in? --
-
-def login_bot():
-    # confirm if there is a login button first
-    points = get_click_positions("test_imgs/login_existing_login_btn_img.png", screenshot, 0.99, "rectangles")
-    # -- if we match the login template, move the mouse to the target and click it --
-    if points:
-        target = wincap.get_true_pos(points[0])
-        # -- if we hit 100 on our counter, click the login button, and reset the counter --
-        print(f"\nInitialising Login")
-        print(f"Rito Login Target Pos = {target}\n")
-        pyautogui.moveTo(x = target[0], y = target[1]) # pyautogui.click(x = target[0], y = target[1])
-        sleep(2)
-        pyautogui.click()
-
 
 
 # -- actually appropriate global vars --
@@ -141,12 +43,10 @@ processing_timer = perf_counter()
 
 # -- test bot to check if we are logged in and on the home page --
 def checker_bot_test(screenshot):
-    # obvs will make this a bot class and have unique actions but for now still testing stuff out 
+    # will likely make this a bot class and have unique actions but for now still testing stuff out 
     global is_bot_active, is_logged_in
-
     # -- sleep for a few seconds to allow pages to load, and to allow for incrememntal rerun if not initially successful (due to slow loading) --
     sleep(2)
-
     # -- 
     # locs, find_img = get_template_matches_at_threshold("test_imgs/play_btn_test_1_img.png", screenshot, threshold=0.99)
     # rects = get_matched_rectangles(find_img, locs)
@@ -154,17 +54,37 @@ def checker_bot_test(screenshot):
     # if points:
     # if rects.all():
     # if len(rects):
-
-    # --
-    success, find_img = get_template_matches_at_threshold("test_imgs/play_btn_test_1_img.png", screenshot, threshold=0.99, only_confirm_mathces_at_threshold=True)
-    if success:
+    # -- look for play button --
+    success_play_btn, find_img = get_template_matches_at_threshold("test_imgs/play_btn_test_1_img.png", screenshot, threshold=0.99, only_confirm_mathces_at_threshold=True)
+    if success_play_btn:
         print(f"Found Play Button - Login Success Confirmed")
         print(f"\nCurrent Page = Home")
         is_logged_in = True
     # -- free up resources and start a new thread by using resetting global --
     is_bot_active = False
     
+@storeInQueue
+def go_to_user_profile_home(screenshot):
+    global is_bot_active
+    print(f"Start Go To User Profile Home")
+    locs, find_img = get_template_matches_at_threshold("test_imgs/play_btn_test_1_img.png", screenshot, threshold=0.99)
+    rects = get_matched_rectangles(find_img, locs)
+    points, ss_with_points = draw_points(rects, screenshot)
+    if points:
+        print("Attempting Click User Profile...")
+        target = wincap.get_true_pos(points[0])
+        pyautogui.moveTo(x = target[0], y = target[1])
+        pyautogui.click()
+        return ss_with_points
+    sleep(2)
 
+
+
+
+
+
+
+# -- main --
 
 # -- loop until quit --
 while True:
@@ -179,16 +99,31 @@ while True:
         print(f"FPS : {1 / (current_time - processing_timer):.2f}")
         processing_timer = perf_counter()
 
+
+    new_ss = False
+
     # -- test bot actions using multithreading --
     if not is_bot_active:
         # -- activate the bot first for consistency --
         is_bot_active = True
+
         # -- if not logged in run the log-in check in a new thread, so we dont clog up the output display blit while processing and waiting --
         if not is_logged_in:
             print(f"Starting Login Thread...\n")
             t = Thread(target=checker_bot_test, args=(screenshot,))
             t.start()
     
+        # -- if not logged in run the log-in check in a new thread, so we dont clog up the output display blit while processing and waiting --
+        if is_logged_in:
+            print(f"Starting Click Profile Thread...\n")
+            t = Thread(target=go_to_user_profile_home, args=(screenshot,))
+            t.start()    
+            # use queue to get back our img data from the thread
+            my_data = my_queue.get()
+            # 
+            if len(my_data):
+                cv.imshow("Results", new_ss)
+
     # -- blit the current screencap --
     cv.imshow("Results", screenshot)
 
@@ -203,7 +138,7 @@ print('Complete')
 
 # -- driver -- 
 if __name__ == "__main__":
-    pass
+    ...
 
 
 
@@ -223,6 +158,9 @@ if __name__ == "__main__":
 # - take the action 
 # - confirm the next page and show the actions that can be taken 
 #   - could use deque or a stack or whatever to store an order of the actions (probably a decent idea tbf but is also long and not at all required lol) 
+
+# so start by adding the home options
+# starting from top left
 
 
 # THEN NO CAP
