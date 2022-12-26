@@ -27,6 +27,10 @@ def storeInQueue(f):
   return wrapper
 
 
+
+
+
+
 # -- initialise test vars --
 test_state = 0
 temp_inc = 0
@@ -55,10 +59,18 @@ def create_bounding_img(img, padding):
     img_h = img.shape[0]
     new_w, new_h = img_w + padding, img_h + padding
     new_x, new_y = padding/2, padding/2
+
     # creating new image object
     imgnew = Image.new("RGB", (new_w, new_h), color='#8ecae6')
-    # save
+    
     imgnew.save('test_imgs/match_padder.png')
+
+
+
+
+
+
+
 
 
 # -- test bot to check if we are logged in and on the home page --
@@ -151,22 +163,23 @@ def find_matches_test(screenshot):
     locs, find_img = get_template_matches_at_threshold(location_img_path, screenshot, 0.95) # 95 for 4, 96 for 3, 98 for 2
     rects = get_matched_rectangles(find_img, locs)
     points, returned_img = draw_points(rects, screenshot, "points")
+
     # new test
     match_times_list = []
-    # if we matched the match info button img
+
     if points:
         print(f"Found Selectable Matches")
         for found_match_btn_point in points:
             cropped_match_img = crop_img(returned_img, found_match_btn_point[0] - 1075, found_match_btn_point[1] - 53, 1203, 115)
             window_uuid = datetime.now() # generate a unique name for the window each time
-            
-            # cv.imshow(f"vision_{window_uuid}", returned_img)
-            # cv.imshow(f"crop_{window_uuid}", cropped_match_img)
-
-            # words = get_words_in_image(cropped_match_img)
+            cv.imshow(f"vision_{window_uuid}", returned_img)
+            cv.imshow(f"crop_{window_uuid}", cropped_match_img)
+            words = get_words_in_image(cropped_match_img)
 
             # new_test_img, words_list = draw_word_boxes(cropped_match_img)
             # processed_imgs = run_image_pre_processing(cropped_match_img)
+
+            
 
             # cv.imshow(f"ocr_{window_uuid}", final_match_img) # new_test_img
 
@@ -178,6 +191,7 @@ def find_matches_test(screenshot):
             match_times_list.append(match_time)
 
             padding = 100
+
             create_bounding_img(cropped_match_img, padding)
             final_match_img = cv.imread("test_imgs/match_padder.png", -1)
 
@@ -252,7 +266,6 @@ def draw_word_boxes(img):
 # THEN CLICK THRU AND DO STUFF ON THE PAGE
 # - FOR NOW JUST TAKE ALL SCREENSHOTS AND SAVE PROPERLY THEN BOUNCE
 # REPEAT FOR ALL 4 ON PAGE
-
 # THEN BOSH
 
 # THEN ITS JUST...
@@ -261,9 +274,44 @@ def draw_word_boxes(img):
 
 # THEN BOSH AGAIN
 
-# ALSO N0TE 
-# - COULD START ADDING IN PYQT5 STUFF
-# - COULD ALSO JUST REFACTOR THE WHOLE THING FROM SCRATCH NOW MAYBEH?
+
+
+# ok so now legit legit
+# - need to sort out this new crop idea to legit first just save every single part of the img right
+# - and so mays well get this sorted out with some kind of organisation / structure for the folders
+# - if time is working fine without preprocessing then just use that for now (obvs with my name or sumnt whatever)
+
+# - and then can get into more preprocessing and ocr
+# - with dynamic considerations (i.e. we're expecting certain formats n shit - tbf tho maybe once the preprocessing is sorted it just works for each crop anyway)
+
+# then imo after this actually nail down the scroll n click
+# then once that is done we can start the stats page processing and data analysis stuff
+
+
+
+
+# new
+# - ocr needs probably a reasonable amount of preprocessing
+# - and also more space so need to be saving these then copying them to a new image
+#   - ig use pillow for this btw
+
+# yeah so imo before preprocessing, crop, as this can have good results too (and will be consistent positions so should be fine)
+# 100% do the pillow thing tho, and have a function for this since imo it will likely be useful to have
+
+# - ocr
+# - make folder/s and store imgs and text info in folder
+# - ss all and store imgs (and text info?) in folder (where? - maybe just a unique one for this)
+# - then get on to some basic data analysis stuff yanno (see old notes for more info)
+
+# - pyqt5?
+# - db stuff?
+# - both not rn tbf
+
+# - again tho remember to add sumnt to be able to confirm / check off (which ig will just be from the ocr) completed items
+#   - i.e. stack or queue (even deque maybe)
+# - once we have all four completed then we scroll
+# - note there is always the potential for 1 pixel to cause problems over lots of scrolls or whatever so just keep that in find 
+
 
 
 
@@ -273,6 +321,7 @@ def crop_img(img_array, x, y, width, height):
     return img_array[y:y + height, x:x+width] # img_to_crop = img_array.copy()
     # cropped_img = og_img[200:400, 300:500]
     
+
 
 
 # -- main --
