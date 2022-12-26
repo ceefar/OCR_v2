@@ -11,11 +11,6 @@ from threading import Thread
 from cls_windowCap import WindowCap
 from comp_vision import *
 
-# new pytesseract for ocr
-from pytesseract import pytesseract
-from pytesseract import Output
-pytesseract.tesseract_cmd = "C:\\Program Files\\Tesseract-OCR\\tesseract.exe" # < required 
-
 # new test stuff
 from datetime import datetime
 import queue
@@ -26,7 +21,10 @@ def storeInQueue(f):
     my_queue.put(f(*args))
   return wrapper
 
-
+# new pytesseract for ocr
+from pytesseract import pytesseract
+from pytesseract import Output
+pytesseract.tesseract_cmd = "C:\\Program Files\\Tesseract-OCR\\tesseract.exe" # < required 
 
 
 
@@ -146,6 +144,7 @@ def find_matches_test(screenshot):
             cv.imshow(f"crop_{window_uuid}", cropped_match_img)
             words = get_words_in_image(cropped_match_img)
             # new_test_img, words_list = draw_word_boxes(cropped_match_img)
+            
             processed_imgs = run_image_pre_processing(cropped_match_img)
             for an_img in processed_imgs:
                 new_test_img, words_list = draw_word_boxes(an_img)
@@ -172,24 +171,32 @@ def get_words_in_image(img):
     return words_in_image
 
 
-def img_to_greyscale(img):
-    grey_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    return grey_img
-
 
 # -- optical character recognition --
 def draw_word_boxes(img):
+    """ """
     image_data = pytesseract.image_to_data(img, output_type=Output.DICT)
-    words_list = []
-    for i, word in enumerate(image_data['text']):
-        if word != '':
-            x,y,w,h = image_data['left'][i],image_data['top'][i],image_data['width'][i],image_data['height'][i]
-            cv.rectangle(img,(x,y),(x+w,y+h),(0,255,0),3)
-            cv.putText(img,word,(x,y-16),cv.FONT_HERSHEY_COMPLEX,1,(0,0,255),2)
-            words_list.append(word)
-    # --
-    return img, words_list
+    user_name_words_y_pos = 0
+    word_list = []
+    for i, word in enumerate(image_data["text"]):
+        if word != "":
+            x, y = image_data["left"][i], image_data["top"][i]
+            w, h = image_data["width"][i], image_data["height"][i]
+            # -- the first profile word is always word 4 (i wanna say due the fact its finding 3 artifacts beforehand consistently but i will confirm this shortly) --
+            if y >= 4:
+                # -- only set this if it hasnt been set yet -- 
+                if not user_name_words_y_pos:
+                    user_name_words_y_pos = y           
+                # -- if this word is on the same y pos as the first word in the username, draw word in rect, print word to console, save word--          
+                if y <= user_name_words_y_pos + 10 and y >= user_name_words_y_pos - 10:
+                    cv.rectangle(img, (x,y), (x + w, y + h), (0, 255, 0), 3) # note rect and putText can be run outside of this if statement, just doing like this for pfp (again, hence the need for decorator lol)
+                    cv.putText(img, word, (x, y-16), cv.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
+        # -- finally save all the words so we can check the exact outputs later --   
+        word_list.append(word)   
+    # -- new - do a quick clean on the username incase it contains any invalid characters for saving --                        
 
+    # -- return the user name --
+    return img, word_list
 
 
 # ok so rn
@@ -199,9 +206,6 @@ def draw_word_boxes(img):
 # - ocr needs probably a reasonable amount of preprocessing
 # - and also more space so need to be saving these then copying them to a new image
 #   - ig use pillow for this btw
-
-# yeah so imo before preprocessing, crop, as this can have good results too (and will be consistent positions so should be fine)
-# 100% do the pillow thing tho, and have a function for this since imo it will likely be useful to have
 
 # - ocr
 # - make folder/s and store imgs and text info in folder

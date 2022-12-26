@@ -11,11 +11,6 @@ from threading import Thread
 from cls_windowCap import WindowCap
 from comp_vision import *
 
-# new pytesseract for ocr
-from pytesseract import pytesseract
-from pytesseract import Output
-pytesseract.tesseract_cmd = "C:\\Program Files\\Tesseract-OCR\\tesseract.exe" # < required 
-
 # new test stuff
 from datetime import datetime
 import queue
@@ -26,7 +21,10 @@ def storeInQueue(f):
     my_queue.put(f(*args))
   return wrapper
 
-
+# new pytesseract for ocr
+from pytesseract import pytesseract
+from pytesseract import Output
+pytesseract.tesseract_cmd = "C:\\Program Files\\Tesseract-OCR\\tesseract.exe" # < required 
 
 
 
