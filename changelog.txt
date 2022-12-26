@@ -1,0 +1,11 @@
+really should have done this from the start to track progress but is fine as this reeeeeeeally is a super duper test version,
+i will refactor this and then do a proper changelog in future
+
+v0.085
+- dynamically 'selecting' each match from the battlelog (from the initial page, no scroll) by cropping out the image based on its match info button position (which is awesome) 
+- tho ive mentioned this before, this could have probably been done already tbh if id just done it entirely manually
+    - i.e. just preset the points for click, preset the time to wait, then trigger a scroll, then use the same preset points, etc... (programmatically)
+- but ive decided to do things truly dynamically instead by using object detection, obvs makes things more complex and time consuming but totally worth it imo
+
+
+

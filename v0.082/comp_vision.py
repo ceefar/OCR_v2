@@ -29,16 +29,16 @@ def draw_rects(search_img, rectangles):
         # return the result
         return search_img
 
-def draw_crosses(base_img, points):
+def draw_crosses(search_img, points):
     # bgr
     marker_color = (255, 0, 255)
     marker_type = cv.MARKER_CROSS
     # loop list of points
     for (center_x, center_y) in points:
         # draw a cross at the center
-        cv.drawMarker(base_img, (center_x, center_y), marker_color, marker_type)
+        cv.drawMarker(search_img, (center_x, center_y), marker_color, marker_type)
     # return the result
-    return points, base_img
+    return search_img
 
 
 # -- new detection testing stuff --

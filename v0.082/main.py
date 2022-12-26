@@ -12,7 +12,6 @@ from cls_windowCap import WindowCap
 from comp_vision import *
 
 # new test
-from datetime import datetime
 import queue
 my_queue = queue.Queue()
 
@@ -49,6 +48,14 @@ def checker_bot_test(screenshot):
     global is_bot_active, is_logged_in
     # -- sleep for a few seconds to allow pages to load, and to allow for incrememntal rerun if not initially successful (due to slow loading) --
     sleep(2)
+    # -- 
+    # locs, find_img = get_template_matches_at_threshold("test_imgs/play_btn_test_1_img.png", screenshot, threshold=0.99)
+    # rects = get_matched_rectangles(find_img, locs)
+    # points = draw_points(rects, screenshot)
+    # if points:
+    # if rects.all():
+    # if len(rects):
+    # -- look for play button --
     success_play_btn, find_img = get_template_matches_at_threshold("test_imgs/play_btn_test_1_img.png", screenshot, threshold=0.99, only_confirm_mathces_at_threshold=True)
     if success_play_btn:
         print(f"Found Play Button - Login Success Confirmed")
@@ -106,8 +113,6 @@ ticker = 0
 def find_page(screenshot):
     """ incrementally go through the pages (starting from top level - tho in future a stack/queue could be good too) checking to see which of the main pages / page types we are on currently """ # profile_text_img
     global is_bot_active, current_state, confirmed_page
-    # note probably a much better idea to convert this to a deque
-    # - actually best thing to do is to run performance timing on this stuff first tbf
     location_img_paths = {"home":{"img":"test_imgs/purenub_user_icon_test_withoutLevel_img.png", "threshold":0.999}, "login":{"img":"test_imgs/login_existing_login_btn_img.png", "threshold":0.99}, "profile_home":{"img":"test_imgs/profile_home_purenub_img.png","threshold":0.99}, "profile_battlelog":{"img":"test_imgs/profile_battle_log_my_videos_btn.png","threshold":0.97}}
     for loc, location_template_info in location_img_paths.items():
         loc_img = location_template_info["img"]
@@ -117,56 +122,25 @@ def find_page(screenshot):
             print(f"Current Screen : {loc}")
             confirmed_page = loc
             break
-    print("Sleep : 2")
+    print("Multi-threading : sleep 5 seconds")
+    sleep(5)
+    is_bot_active = False
+
+
+def find_match_test(screenshot):
+    # note think will be best to actually crop out say the top the and process them this way or sumnt
+    global is_bot_active, current_state, confirmed_page
+    location_img_path = "test_imgs/profile_battlelog_game_info_btn.png"
+    locs, find_img = get_template_matches_at_threshold(location_img_path, screenshot, 0.98)
+    rects = get_matched_rectangles(find_img, locs)
+    points, returned_img = draw_points(rects, screenshot, "rectangles")
+    if points:
+        print(f"found points")
+        cv.imshow("Computer Vision", returned_img)
+        cv.waitKey()
+    print("Multi-threading : sleep 2 seconds")
     sleep(2)
     is_bot_active = False
-
-
-def find_matches_test(screenshot):
-    # note think will be best to actually crop out say the top the and process them this way or sumnt
-    global is_bot_active
-    location_img_path = "test_imgs/profile_battlelog_game_info_btn.png"
-    locs, find_img = get_template_matches_at_threshold(location_img_path, screenshot, 0.95) # 95 for 4, 96 for 3, 98 for 2
-    rects = get_matched_rectangles(find_img, locs)
-    points, returned_img = draw_points(rects, screenshot, "points")
-    if points:
-        print(f"Found Selectable Matches")
-        for found_match_btn_point in points:
-            cropped = crop_img(returned_img, found_match_btn_point[0] - 1075, found_match_btn_point[1] - 53, 1203, 115)
-            window_uuid = datetime.now() # generate a unique name for the window each time
-            cv.imshow(f"vision_{window_uuid}", returned_img)
-            cv.imshow(f"crop_{window_uuid}", cropped)
-            cv.waitKey()
-    # --
-    is_bot_active = False
-
-
-    # ok so rn
-    # - save each img
-    # - ocr
-    # - make folder/s and store imgs and text info in folder
-    # - ss all and store imgs (and text info?) in folder (where? - maybe just a unique one for this)
-
-    # - pyqt5?
-    # - db stuff?
-    # - both not rn tbf
-
-    # - again tho remember to add sumnt to be able to confirm / check off (which ig will just be from the ocr) completed items
-    #   - i.e. stack or queue (even deque maybe)
-    # - once we have all four completed then we scroll
-    # - note there is always the potential for 1 pixel to cause problems over lots of scrolls or whatever so just keep that in find 
-    
-
-
-
-def crop_img(img_array, x, y, width, height):
-    """ pass top left & bottom left co-ordinates with width and height to return cropped img """
-    # making this a function as will hard code dimensions so can just pass in a name to do this, but for now obvs its just one crop type so just getting it working to test stuff
-    return img_array[y:y + height, x:x+width] # img_to_crop = img_array.copy()
-    # cropped_img = og_img[200:400, 300:500]
-    
-
-
 
 # -- main --
 
@@ -203,16 +177,23 @@ while True:
                 t = Thread(target=find_page, args=(screenshot,))
                 t.start()
 
-            # -- current new test stuff for processing match info --
+
+
             if confirmed_page == "profile_battlelog": 
                 is_bot_active = True
                 print(f"Starting New Thread For : Find Page...\n")            
-                t = Thread(target=find_matches_test, args=(screenshot,))
+                t = Thread(target=find_match_test, args=(screenshot,))
                 t.start()
-        
+            else:
+                # regularly reset the page checker while debugging              
+                confirmed_page = ""
 
-            # regularly reset the page checker while debugging              
-            confirmed_page = ""
+            # if current_state != "user_profile_home":
+            #     is_bot_active = True
+            #     print(f"Starting Click Profile Thread...\n")
+            #     t = Thread(target=click_on_user_profile, args=(screenshot,))
+            #     t.start()    
+
 
     # -- blit the current screencap --
     cv.imshow("Results", screenshot)
@@ -229,3 +210,78 @@ print('Complete')
 # -- driver -- 
 if __name__ == "__main__":
     ...
+
+
+# MIGHT BE WORTH REWRITING THIS PAGE FROM SCRATCH NOW YANNO!!!!! <<<<<<<<<
+# ok so was nice test know what im actually guna do now
+# so do it purely with verification like ive just said before
+# so from here on out do it by starting with the just base home menu
+# but really the first thing that will happen is
+# - confirm which page i am on
+# - if it confirms the home page
+# - it will then show the options
+# ...
+# for now just between battlelog home and profile page is fine 
+# - quickly slide in some pyqt5 even if its basic af?
+# ...
+# basically once you've nailed that programmatically and properly...
+
+
+# THEN GET ON TO THIS...
+# - start by just doing the average rank of each player in a given match, saving their name and rank, and obvs the result of the match
+# - then add in a kda var to this too
+# - remember and then was even guna consider template matching for champions too!
+# - remember saving abd organising the data properly from the start is important
+
+
+# THEN IN MORE DETAIL/NOTES/THOUGHTS...
+# list all of the matches on the current page
+# and create all our initial first folders me thinks
+# having the match be saved by 
+# - the user who's battlelog its from 
+# - and then the datetime of the match
+# - e.g. match_accountName_080822_1957
+#   - obvs considerations for knowing when you've completed a match and scrolling down but just get it to work on the initial page of whatever X matches first
+#   - maybe just have some super basic list for this as a var in memory for now too and we'll just use bools to indicate when a match is completed
+#   - could use a stack? (will we need to go back through tho?)
+#   - maybe deque?... whatever, anyways
+
+# then store the core stuff for the match in a folder like main info with the imgs of all pages
+# and a txt file of the info clean laid out (which well then do in json or xsl or even to db with sql idk yet doesnt matter yet either just txt for now)
+# - obvs we're doing the result and the avg rank of each team in this file too but we need to get that first
+# for getting the info from each player
+# we mays well get their kda info page too
+# dont process it yet but save it
+# save each player in one of two folders (my team / enemy team)
+# and give each of them a folder too where we'll put the imgs and a txt file of the basic info we're extracted and saved
+# then process the avg rank of the team and save that
+# then we do the entire game file thing to final (maybe its 2 files whatever)
+# then i guess lets output to terminal (or pyqt5)
+# then legit you just do the next one bosh
+
+
+
+# - remember do still want a db but imo could just save as xsl or json or whatever for now
+# - should check riots own json file yanno!
+#   - 100% compatability with any kinda image creator to work with both their data and my data would be insanely awesome
+
+
+# in pyqt5
+# to do things like current page
+# buttons for interactions
+# and even an option to see the current computer vision (or last computer vision or last action saved as an image or sumnt) <<= ok so all that stuff is defo for future lol
+
+
+# -- add this in write up --
+# - despite not knowing it at the time, the last 2 pygame projects have been insanely useful as insanely similar and functionalities 
+# - in libraries like opencv, win32ui/gui, and even helps being brushed up with arrays in relation to images (as per pygame projects) 
+# - since its basically the same interaction with numpy
+# - and 
+# - funnily enough, about contiguous arrays in google foobar
+
+# for write up
+# - note that this particular bit could obvs have been done pretty easy just doing it manually (if on screen then use console to run functionalities)
+# - but imo its much better to do things dynamically from the start, then minor ui changes shouldnt affect the functionality
+# - and the likelihood of the functionality being compatible with a large array of different device sizes is much more likely doing it this way too
+
+
