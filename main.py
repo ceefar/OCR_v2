@@ -24,7 +24,6 @@ pyautogui.FAILSAFE = True
 wincap = WindowCap('Max Performance')
 
 
-
 # -- variables --
 is_bot_active = False
 is_bot_home = False # being at homepage essentially is our blank slate to start running bot actions, our bot will return here when its actions have been completed
@@ -52,7 +51,6 @@ def get_template_matches_at_threshold(find_img_path, base_img, threshold=0.95):
     # -- return the resulting list of locations over the threshold --
     return locations
 
-
 def confirm_at_homepage(screenshot):
     # --
     global is_bot_active, is_bot_home
@@ -68,18 +66,17 @@ def confirm_at_homepage(screenshot):
     sleep(0.5)
     is_bot_active = False
 
-
 def get_bot_actions():
     # --
     global is_bot_active, user_action_select
     # --
     print(f"\n- - - - Actions - - - -")
     print(f"- 1. Save All Games")
-    print(f"- 2. Quit")
+    print(f"- 2. A Bot Action")
+    print(f"- 9. Quit")
     faux_input = int(input("Enter Your Selection? : "))
     user_action_select = faux_input
     is_bot_active = False
-    
 
 def run_bot_action_1(): # test af name obvs
     global is_bot_active, user_action_select
@@ -88,16 +85,12 @@ def run_bot_action_1(): # test af name obvs
     is_bot_active = False
 
 
-
 # -- main - loop until quit --
 while True:
-
     # -- get game window screencap -- 
     screenshot = wincap.get_screencap()
-
     # -- blit the current screencap --
     cv.imshow("Game Window", screenshot)
-        
     # -- confirm we are on the homepage --
     if not is_bot_home:
         # -- start a new thread to check we are at the home page, and so want to start running a new bot action -- 
@@ -105,7 +98,6 @@ while True:
             is_bot_active = True
             t = Thread(target=confirm_at_homepage, args=(screenshot,))
             t.start()
-    
     # -- if we are on the home page, display the actions to the user --
     if is_bot_home:
         # -- only run one bot thread at a time, using threading so we dont clog up the windowcapture while awaiting action --
@@ -122,6 +114,9 @@ while True:
                     is_bot_active = True
                     t = Thread(target=run_bot_action_1, args=())
                     t.start()
+                elif user_action_select == 9:
+                    cv.destroyAllWindows()
+                    break
                 else:
                     user_action_select = 0
             else:
@@ -130,13 +125,18 @@ while True:
                 # -- start the thread --
                 t = Thread(target=get_bot_actions, args=())
                 t.start()
-
-
-
-
-
-            
-
+    # --
     if cv.waitKey(1) == ord('q'):
         cv.destroyAllWindows()
         break
+
+
+# get to match history
+# store the current 4 games times in memory
+# make their folders
+# incrementally process them
+# return to home
+# ensure we get prompted again
+
+# then from here just continue with more saving and processing 
+# - ig initial idea to do kdas and saving rank and stats page will be perf for now
