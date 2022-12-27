@@ -12,8 +12,8 @@ from datetime import datetime
 import queue
 
 # -- internal imports --
-from cls_windowCap import WindowCap
-from comp_vision import *
+from last_test_version.cls_windowCap import WindowCap
+from last_test_version.comp_vision import *
 
 # -- initialise pytesseract for ocr --
 pytesseract.tesseract_cmd = "C:\\Program Files\\Tesseract-OCR\\tesseract.exe" # < required 
