@@ -203,7 +203,7 @@ def find_matches_test(screenshot):
             new_test_img, words_list = draw_word_boxes(final_match_img)
             with open(f'botted_test_imgs/{current_match_folder}/battlelog_match_ocr.txt', 'w') as f:
                 for word in words_list:
-                    f.write(f"{word}\n") 
+                    f.write(word) 
             
             ocr_test_img = cv.cvtColor(new_test_img, cv.COLOR_BGR2RGB)
             ocr_test_img = Image.fromarray(ocr_test_img)

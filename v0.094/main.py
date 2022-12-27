@@ -170,52 +170,46 @@ def find_matches_test(screenshot):
 
             # cv.imshow(f"ocr_{window_uuid}", final_match_img) # new_test_img
 
-            # -- run light processing and ocr to get time of match as string --
+            # run light processing and ocr to get time of match as string 
             cropped_match_time_img = crop_img(cropped_match_img, 800, 5, 200, 40)
             match_time = get_words_in_image(cropped_match_time_img)
             match_time_slicer = match_time.rfind("\n")
             match_time = match_time[:match_time_slicer]
             match_times_list.append(match_time)
             matches_list.append(match_time) # also this as we want something to store them ALL, not just the page we are currently processing
+
+            padding = 100
+            create_bounding_img(cropped_match_img, padding)
+            final_match_img = cv.imread("test_imgs/match_padder.png", -1)
+
+            # convert colour to rgb, and then convert numpy array to img 
+            cropped_colour_convert = cv.cvtColor(cropped_match_img, cv.COLOR_BGR2RGB)
+            paste_crop = Image.fromarray(cropped_colour_convert)
             match_time = clean_time(match_time)
             print(f"{match_time = }")   
 
-            # -- convert colour to rgb, and then convert numpy array to img --
-            cropped_colour_convert = cv.cvtColor(cropped_match_img, cv.COLOR_BGR2RGB)
-            paste_crop = Image.fromarray(cropped_colour_convert)
-            
             # -- new - create folders of matches for proper organising of extracted data -- 
             current_match_folder = f"match_{match_time}"
-            try:
-                os.mkdir(f"botted_test_imgs/{current_match_folder}") 
-            except FileExistsError:
-                pass
-                        
+            os.mkdir(f"botted_test_imgs/{current_match_folder}") 
+             
             paste_crop.save(f"botted_test_imgs/{current_match_folder}/battlelog_match.png")
             fore_img = cv.imread(f"botted_test_imgs/{current_match_folder}/battlelog_match.png", -1)
-            final_match_img = cv.imread("test_imgs/match_padder.png", -1)
 
-            # padding = 100
-            # create_bounding_img(cropped_match_img, padding)
             x_offset=y_offset=50
             final_match_img[y_offset:y_offset+fore_img.shape[0], x_offset:x_offset+fore_img.shape[1]] = fore_img
 
             new_test_img, words_list = draw_word_boxes(final_match_img)
-            with open(f'botted_test_imgs/{current_match_folder}/battlelog_match_ocr.txt', 'w') as f:
-                for word in words_list:
-                    f.write(f"{word}\n") 
-            
+            print(f"{words_list = }")   
+
             ocr_test_img = cv.cvtColor(new_test_img, cv.COLOR_BGR2RGB)
             ocr_test_img = Image.fromarray(ocr_test_img)
 
             # saving
-            ocr_test_img.save(f"botted_test_imgs/{current_match_folder}/battlelog_match_ocr.png")
+            ocr_test_img.save(f"botted_test_imgs/{current_match_folder}/battlelog_match_ocr_1.png")
 
             # show window
-            want_show_window = False
-            if want_show_window:
-                cv.imshow(f"ocr_{window_uuid}", cropped_match_time_img)
-                cv.waitKey()
+            cv.imshow(f"ocr_{window_uuid}", cropped_match_time_img)
+            cv.waitKey()
 
     # --
     print(f"{match_times_list = }")
@@ -249,8 +243,8 @@ def draw_word_boxes(img):
     for i, word in enumerate(image_data['text']):
         if word != '':
             x,y,w,h = image_data['left'][i],image_data['top'][i],image_data['width'][i],image_data['height'][i]
-            cv.rectangle(img,(x,y),(x+w,y+h),(0,255,0),3)
             cv.putText(img,word,(x,y-16),cv.FONT_HERSHEY_COMPLEX,1,(0,0,255),2)
+            cv.rectangle(img,(x,y),(x+w,y+h),(0,255,0),3)
             words_list.append(word)
     # --
     return img, words_list
