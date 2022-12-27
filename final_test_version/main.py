@@ -36,7 +36,7 @@ account_username = "hiitzsenna4" # will make these secrets tho tbf
 account_password = "e150upm4n"
 is_logged_in = True
 is_bot_active = False # bool to ensure we only have one open thread for bot actions
-matches_list = []
+matches_dict = {}
 
 # -- ensure pyautogui failsafe is active --
 pyautogui.FAILSAFE = True
@@ -119,13 +119,16 @@ def click_on_image(screenshot, path_to_img):
 
 # -- new test stuff --
 confirmed_page = ""
-# -- new test stuff --
 def find_page(screenshot):
     """ incrementally go through the pages (starting from top level - tho in future a stack/queue could be good too) checking to see which of the main pages / page types we are on currently """ # profile_text_img
     global is_bot_active, current_state, confirmed_page
     # note probably a much better idea to convert this to a deque
     # - actually best thing to do is to run performance timing on this stuff first tbf
-    location_img_paths = {"home":{"img":"test_imgs/purenub_user_icon_test_withoutLevel_img.png", "threshold":0.999}, "login":{"img":"test_imgs/login_existing_login_btn_img.png", "threshold":0.99}, "profile_home":{"img":"test_imgs/profile_home_purenub_img.png","threshold":0.99}, "profile_battlelog":{"img":"test_imgs/profile_battle_log_my_videos_btn.png","threshold":0.97}}
+    location_img_paths = {"home":{"img":"test_imgs/purenub_user_icon_test_withoutLevel_img.png", "threshold":0.999},
+                    "login":{"img":"test_imgs/login_existing_login_btn_img.png", "threshold":0.99}, 
+                    "profile_home":{"img":"test_imgs/profile_home_purenub_img.png","threshold":0.99}, 
+                    "profile_battlelog":{"img":"test_imgs/profile_battle_log_my_videos_btn.png","threshold":0.97},
+                    "game_info_ranked":{"img":"test_imgs/game_info_ranked_img.png","threshold":0.999}}
     for loc, location_template_info in location_img_paths.items():
         loc_img = location_template_info["img"]
         loc_threshold = location_template_info["threshold"]
@@ -176,7 +179,9 @@ def find_matches_test(screenshot):
             match_time_slicer = match_time.rfind("\n")
             match_time = match_time[:match_time_slicer]
             match_times_list.append(match_time)
-            matches_list.append(match_time) # also this as we want something to store them ALL, not just the page we are currently processing
+            matches_dict[match_time] = {}
+            matches_dict[match_time]["processed"] = False # for storing all matches, not just the page we are currently processing, false for not processed
+            matches_dict[match_time]["btn_pos"] = found_match_btn_point 
             match_time = clean_time(match_time)
             print(f"{match_time = }")   
 
@@ -222,6 +227,58 @@ def find_matches_test(screenshot):
     is_bot_active = False
 
 
+def click_at_pos(position):
+    print(f"Clicking @ {position}...")
+    target = wincap.get_true_pos(position)
+    pyautogui.moveTo(x = target[0], y = target[1])
+    pyautogui.click()
+    sleep(2) # sleep at the end to give time for the screen to update from the interaction 
+
+
+
+def process_match_test(screenshot, btn_pos, match_id):
+    print(f"\nProcess Match")
+    click_at_pos(btn_pos)
+    sleep(5)
+    success, find_img = get_template_matches_at_threshold("test_imgs/game_info_ranked_img.png", screenshot, 0.999, only_confirm_mathces_at_threshold=True)
+    if success:
+        screenshot_img = Image.fromarray(screenshot)
+        match_time = clean_time(match_id)
+        current_match_folder = f"match_{match_time}"
+        screenshot_img.save(f"botted_test_imgs/{current_match_folder}/match_result_full.png")
+        locs, find_img = get_template_matches_at_threshold("test_imgs/back_btn.png", screenshot, 0.97)
+        rects = get_matched_rectangles(find_img, locs)
+        points, returned_img = draw_points(rects, screenshot, "points")
+        if points:
+            print("Found Back Btn")
+            print(f"{points[0] = }")
+            # click_at_pos(points[0])
+            # sleep(5)
+    
+
+
+    is_bot_active = False
+
+
+
+
+
+
+# so this is working but a its a complete mess now which is fine as was really just trying to test as much as possible
+# also partly due to being farily new to multithreading
+
+# anyways legit just guna rewrite this now as i know much better what I want to implement and how to implement it
+# :D  
+
+
+
+# save the page image in the folder properly with some light croppping maybe
+# - start by just cropping the main things i wanna save, which are the result, and then the kdas (tho will do this by player ig)
+# then its processing the players in the same way as the match list button press thing
+# again just get their rank ocr only for now but still save their main page (and fuck it maybe their stats page too)
+
+
+
 def run_image_pre_processing(img):
     """ performs simple preprocessing (blur, binary, gaussian blur), on an image and returns the resulting images in a list """
     # img = cv.medianBlur(img, 5)
@@ -242,7 +299,6 @@ def img_to_greyscale(img):
     return grey_img
 
 
-# -- optical character recognition --
 def draw_word_boxes(img):
     image_data = pytesseract.image_to_data(img, output_type=Output.DICT)
     words_list = []
@@ -254,30 +310,6 @@ def draw_word_boxes(img):
             words_list.append(word)
     # --
     return img, words_list
-
-
-# MAKE THE FOLDER
-# BANG THE IMAGES IN THE FOLDER
-# THEN CLICK THRU AND DO STUFF ON THE PAGE
-# - FOR NOW JUST TAKE ALL SCREENSHOTS AND SAVE PROPERLY THEN BOUNCE
-# REPEAT FOR ALL 4 ON PAGE
-
-# THEN BOSH
-
-# THEN ITS JUST...
-# DO SCROLL
-# DO DATA EXTRACTION, PRE-PROCESSING, OCR, AND DATA ANALYSIS
-
-# THEN BOSH AGAIN
-
-# ALSO N0TE 
-# - COULD START ADDING IN PYQT5 STUFF
-# - COULD ALSO JUST REFACTOR THE WHOLE THING FROM SCRATCH NOW MAYBEH?
-
-# ALSO N0TE
-# - KEEP A HIDDEN FOLDER TO STORE VARIOUS CLIPS DURING THE PROGRESS FOR THE THAT I CAN USE FOR THE WRITE UP
-# - ALSO VIDS WOULD BE HELLA USEFUL HUH
-
 
 
 def crop_img(img_array, x, y, width, height):
@@ -329,9 +361,22 @@ while True:
                 print(f"Starting New Thread For : Find Page...\n")            
                 t = Thread(target=find_matches_test, args=(screenshot,))
                 t.start()
+
         
+            if matches_dict:
+                print(f"{matches_dict = }")
+                for match_id, match_info_dict in matches_dict.items():
+                    is_processed = match_info_dict["processed"]
+                    btn_pos = match_info_dict["btn_pos"]
+                    if not is_processed:
+                        print(f"Processing {match_id = }") # need to pass this as well obvs btw
+                        is_bot_active = True
+                        t = Thread(target=process_match_test, args=(screenshot, btn_pos, match_id))
+                        t.start()
+
             # -- regularly reset the page checker while debugging --              
             confirmed_page = ""
+
 
     # -- blit the current screencap --
     cv.imshow("Results", screenshot)
@@ -348,3 +393,27 @@ print('Complete')
 # -- driver -- 
 if __name__ == "__main__":
     ...
+
+
+
+
+# THEN CLICK THRU AND DO STUFF ON THE PAGE
+# - FOR NOW JUST TAKE ALL SCREENSHOTS AND SAVE PROPERLY THEN BOUNCE
+# REPEAT FOR ALL 4 ON PAGE
+
+# THEN BOSH
+
+# THEN ITS JUST...
+# DO SCROLL
+# DO DATA EXTRACTION, PRE-PROCESSING, OCR, AND DATA ANALYSIS
+
+# THEN BOSH AGAIN
+
+# ALSO N0TE 
+# - COULD START ADDING IN PYQT5 STUFF
+# - COULD ALSO JUST REFACTOR THE WHOLE THING FROM SCRATCH NOW MAYBEH?
+
+# ALSO N0TE
+# - KEEP A HIDDEN FOLDER TO STORE VARIOUS CLIPS DURING THE PROGRESS FOR THE THAT I CAN USE FOR THE WRITE UP
+# - ALSO VIDS WOULD BE HELLA USEFUL HUH
+

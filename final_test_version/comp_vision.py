@@ -50,7 +50,7 @@ def get_template_matches_at_threshold(find_img_path, base_img, threshold=0.95, o
     method = cv.TM_CCORR_NORMED
     result = cv.matchTemplate(base_img, find_img, method) 
     # new - for logging the confidence while testing
-    want_confidence = True
+    want_confidence = False
     if want_confidence:
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(result)
         # print('Best match top left position: %s' % str(max_loc))
@@ -58,7 +58,7 @@ def get_template_matches_at_threshold(find_img_path, base_img, threshold=0.95, o
     # get only locations above a given threshold
     locations = np.where(result >= threshold)
     # log amout of results at this threshold
-    want_results_count = True
+    want_results_count = False
     if want_results_count:
         print(f"Results @ threshold {threshold} = {locations[0].size}\n") 
     # -- new test --
