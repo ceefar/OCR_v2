@@ -24,6 +24,11 @@ pyautogui.FAILSAFE = True
 # -- create a new instance of our screen capture class using the Max Performance window (which is the name of the Bluestacks game)
 wincap = WindowCap('Max Performance')
 
+# -- make temp testing directory if it doesnt exist --
+try:
+    os.mkdir(f"botted_test_imgs") 
+except FileExistsError:
+    pass
 
 # -- variables --
 is_bot_active = False
@@ -45,7 +50,7 @@ def get_template_matches_at_threshold(find_img_path, base_img, threshold=0.95):
     # -- debug log : confidence at best match --
     if want_confidence:
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(result)
-        print('Best match confidence: %s' % max_val)
+        print('\nBest match confidence: %s' % max_val)
         # print('Best match top left position: %s' % str(max_loc))
     # -- debug log : amount of matches at given threshold --
     if want_results_count:
@@ -75,27 +80,30 @@ def confirm_at_page(screenshot, page_name="profile_home"):
     global is_bot_active
     # will use a dict for this or sumnt else idk yet actually tbf, either way rn its just testing
     if page_name == "profile_home":
-        home_img_path = "test_imgs/purenub_user_icon_test_withoutLevel_img.png"
+        home_img_path = "test_imgs/profile_home_purenub_img.png" # purenub_user_icon_test_withoutLevel_img
         home_img_threshold = 0.999
-        # --
         locs, _ = get_template_matches_at_threshold(home_img_path, screenshot, home_img_threshold)
-        if locs:
+        sleep(0.5)
+        if locs[0].size:
             print(f"Current Page : Profile - Home")
+            sleep(0.5)
             return True
+        else:
+            return False
     # -- yeah defo will do this better just rushing it out to test stuff --
     if page_name == "battlelog_all":
         battlelog_img_path = "test_imgs/profile_all_matches_dropdown.png" # profile_all_matches_dropdown profile_battle_log_my_videos_btn 0.99
         battlelog_img_threshold = 0.999
-        # --
         locs, find_img = get_template_matches_at_threshold(battlelog_img_path, screenshot, battlelog_img_threshold)
+        sleep(0.5)
         if locs[0].size:
             rects = get_matched_rectangles(find_img, locs)
             points, ss_with_points = draw_points(rects, screenshot)
-            return ss_with_points    
-    # -- short sleep --
-    sleep(0.5)
-    return False
-    
+            sleep(0.5)
+            return True, ss_with_points 
+        else:
+            return False, False   
+
 
 def get_words_in_image(img):
     words_in_image = pytesseract.image_to_string(img)
@@ -126,6 +134,7 @@ def crop_img(img_array, x, y, width, height):
 
 
 def find_games_on_page(screenshot):
+    # note : be smart and just decrement the confidence for the threshold on the back button if we cant find it?
     # note think will be best to actually crop out say the top the and process them this way or sumnt
     global is_bot_active
     location_img_path = "test_imgs/profile_battlelog_game_info_btn.png"
@@ -138,7 +147,7 @@ def find_games_on_page(screenshot):
     if points:
         matches_search_img = cv.cvtColor(returned_img, cv.COLOR_BGR2RGB)
         matches_search_img = Image.fromarray(matches_search_img)
-        matches_search_img.save(f"matches_search_img.png")
+        matches_search_img.save(f"bot_test_imgs/matches_search_img.png")
         print(f"Found Selectable Matches")
         for found_match_btn_point in points:
             cropped_match_img = crop_img(returned_img, found_match_btn_point[0] - 1075, found_match_btn_point[1] - 53, 1203, 115)
@@ -202,23 +211,21 @@ def find_games_on_page(screenshot):
             if want_show_window:
                 cv.imshow(f"ocr_{window_uuid}", cropped_match_time_img)
                 cv.waitKey()
-
     # --
-    print(f"{match_times_list = }")
-    print(f"{matches_dict = }")
-    is_bot_active = False
+    # print(f"{match_times_list = }")
+    # print(f"{matches_dict = }")
 
 
 def process_a_game(btn_pos, game_id):
     print(f"Processing Game {game_id}...")
     click_at_pos(btn_pos)
+    sleep(1)
     game_img = wincap.get_screencap()
     game_img = cv.cvtColor(game_img, cv.COLOR_BGR2RGB)
     game_img = Image.fromarray(game_img)
     match_time = clean_time(game_id) 
     current_match_folder = f"match_{match_time}"
     game_img.save(f"botted_test_imgs/{current_match_folder}/match_info_main.png")
-    sleep(5)
     locs, find_img = get_template_matches_at_threshold("test_imgs/back_btn.png", screenshot, 0.97)
     rects = get_matched_rectangles(find_img, locs)
     points, _ = draw_points(rects, screenshot, "points")
@@ -226,7 +233,7 @@ def process_a_game(btn_pos, game_id):
         print("Found Back Btn")
         print(f"{points[0] = }")
         click_at_pos(points[0])
-        sleep(5)
+        return True
 
 
 def click_at_pos(position):
@@ -247,54 +254,86 @@ def get_bot_actions():
     print(f"- 9. Quit")
     faux_input = int(input("Enter Your Selection? : "))
     user_action_select = faux_input
+    print(f"")
     is_bot_active = False
 
-def run_bot_action_1(screenshot): # test af name obvs
+def run_bot_action_1(screenshot): 
+
     global is_bot_active, user_action_select
     print(f"1. {user_action_select = }")
-    click_on_image(screenshot, "test_imgs/purenub_user_icon_test_withLevel_img.png", 0.99, "home")
-    success = confirm_at_page(screenshot, "profile_home")
-    if success:
-        print(f"Location Confirmed")
-        print(f"Clicking... Go To Match History")
-
+    
+    go_to_profile = True
+    # -- go to profile, but dont continue until confirmed --
+    while go_to_profile:
+        # -- log actions progression --
+        print(f"Attempting Navigation : Profile - Home ")
         # -- update the screenshot --
         screenshot = wincap.get_screencap()
-
-        click_on_image(screenshot, "test_imgs/profile_match_history_btn.png", 0.99, "profile")
+        click_on_image(screenshot, "test_imgs/purenub_user_icon_test_withLevel_img.png", 0.99, "home")
         sleep(4)
-        
-        # -- update the screenshot --
+        success = confirm_at_page(screenshot, "profile_home")
+        # -- if confirmed at location, continue --
+        if success:
+            print(f"Confirmed Page : Profile - Home\nContinuing...") 
+            go_to_profile = False # dont need this and break duhhh
+            break
+        # -- else try again
+        else:
+            print(f"Couldn't Confirm Page : Profile - Home\nTrying Again in 2 Seconds...") 
+            sleep(2)
+
+    # -- go to battlelog, but dont continue until confirmed --
+    while True:
+        # -- log actions progression --
+        print(f"Attempting Navigation : Battlelog - All Matches")
+        # -- update the screenshot, attempt clicking the image to go to battlelog, wait 4 seconds, check success  --
         screenshot = wincap.get_screencap()
+        click_on_image(screenshot, "test_imgs/profile_match_history_btn.png", 0.99, "profile")
+        sleep(5) 
+        screenshot = wincap.get_screencap()
+        was_successful, success_img = confirm_at_page(screenshot, "battlelog_all")
+        # -- if page has been confirmed, break the loop and continue to processing games --
+        if was_successful:
+            print(f"Confirmed Page : Battlelog - All Matches\nContinuing...") 
 
-        success_img = confirm_at_page(screenshot, "battlelog_all")
-        try:
-            if success_img.any():
-                success_img = cv.cvtColor(success_img, cv.COLOR_BGR2RGB)
-                success_img = Image.fromarray(success_img)
-                success_img.save(f"bot_test_imgs/battlelog_all.png")
-                print(f"Current Page : Battlelog - All Matches") 
-
-                sleep(2)
-                screenshot = wincap.get_screencap()
-                find_games_on_page(screenshot)
+            # -- save the image we processed --
+            success_img = cv.cvtColor(success_img, cv.COLOR_BGR2RGB)
+            success_img = Image.fromarray(success_img)
+            success_img.save(f"bot_test_imgs/battlelog_all.png")
+            
+            # -- update the screenshot --
+            screenshot = wincap.get_screencap()
+            # -- find games on page, saving globally due to multi-threading (globals is just substantially easier implementation so im fine with it) --
+            find_games_on_page(screenshot)
+            # -- process all the games on screen based on their info button and the game_id (which is just the datetime of the game) --
+            while True:
+                #
                 for game_id, game_info_dict in matches_dict.items():
-                    process_a_game(game_info_dict['btn_pos'], game_id)
-        except AttributeError:
-            # try again
-            success_img = confirm_at_page(screenshot, "battlelog_all")
-            if success_img.any():
-                success_img = cv.cvtColor(success_img, cv.COLOR_BGR2RGB)
-                success_img = Image.fromarray(success_img)
-                success_img.save(f"bot_test_imgs/battlelog_all.png")
-                print(f"Current Page : Battlelog - All Matches") 
+                    was_processed = process_a_game(game_info_dict['btn_pos'], game_id)
+                    if was_processed:
+                        matches_dict[game_id]["processed"] = True
+                # -- check after that all were processed, if any werent we'll do them again tho not actually doing that part yet lol, obvs will redo the below functionality when ik specifically how i want this to work, just leaving a basic switch case for now --
+                any_false = False
+                for game_info_dict in matches_dict.values():
+                    is_processed = game_info_dict["processed"]
+                    if not is_processed:
+                        any_false = True
+                        break
+                if any_false:
+                    print(f"UH OH : NOT ALL WERE MATCHES PROCESSED!")
+                    pass
+                else:
+                    # -- else all completed, so continue -- 
+                    print(f"All Matches Processed...")
+                    break
+            # -- if all completed break this loop and continue (go to home?) --
+            break
+        else:
+            print(f"Couldn't Confirm Page : Battlelog - All Matches\nTrying Again in 2 Seconds...") 
+            sleep(2)
 
-                sleep(2)
-                screenshot = wincap.get_screencap()
-                find_games_on_page(screenshot)
-                for game_id, game_info_dict in matches_dict.items():
-                    process_a_game(game_info_dict['btn_pos'], game_id)
     # -- important - reset everything now this entire bot action is completed --
+    print(f"{matches_dict = }")
     user_action_select = 0
     is_bot_active = False
 
@@ -308,26 +347,22 @@ def run_bot_action_2(): # test af name obvs
 
 def click_on_image(screenshot, path_to_img, threshold=0.99, file_name="test"):
     global is_bot_active, current_state
-    print(f"Attempting Click")
     # --
     locs, find_img = get_template_matches_at_threshold(path_to_img, screenshot, threshold)
     rects = get_matched_rectangles(find_img, locs)
     points, ss_with_points = draw_points(rects, screenshot)
-    sleep(5)
     if points:
         ss_with_points = cv.cvtColor(ss_with_points, cv.COLOR_BGR2RGB)
         ss_with_points = Image.fromarray(ss_with_points)
         ss_with_points.save(f"bot_test_imgs/{file_name}.png")
         # --
-        print("Found Image. Clicking...")
+        print("Found Image. Clicking...\n")
         target = wincap.get_true_pos(points[0])
         pyautogui.moveTo(x = target[0], y = target[1])
         pyautogui.click()
-        sleep(5) # sleep at the end to give time for the screen to update from the interaction 
     else:
-        # if we dont find points, sleep for 5 seconds before rerunning this code to try again
-        print(f"Couldnt Find Given Image - Waiting 2 seconds")
-        sleep(2)
+        print(f"Couldnt Find Given Image. No Click Attempted.\n")
+    sleep(1) # sleep at the end to give time for the screen to update from the interaction, should be handling outside tho which is why this is short
 
 
 
