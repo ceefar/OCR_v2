@@ -182,8 +182,8 @@ def find_matches_test(screenshot):
             matches_dict[match_time] = {}
             matches_dict[match_time]["processed"] = False # for storing all matches, not just the page we are currently processing, false for not processed
             matches_dict[match_time]["btn_pos"] = found_match_btn_point 
-            match_time = clean_time(match_time)
-            print(f"{match_time = }")   
+            match_time = clean_time(match_time) 
+            print(f"{match_time = }") 
 
             # -- convert colour to rgb, and then convert numpy array to img --
             cropped_colour_convert = cv.cvtColor(cropped_match_img, cv.COLOR_BGR2RGB)
@@ -254,9 +254,7 @@ def process_match_test(screenshot, btn_pos, match_id):
             print(f"{points[0] = }")
             # click_at_pos(points[0])
             # sleep(5)
-    
-
-
+    # --
     is_bot_active = False
 
 
