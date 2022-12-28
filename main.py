@@ -294,40 +294,7 @@ def run_bot_action_1(screenshot): # test af name obvs
                 find_games_on_page(screenshot)
                 for game_id, game_info_dict in matches_dict.items():
                     process_a_game(game_info_dict['btn_pos'], game_id)
-
-        # right so is amaaaazing its working for all matches now and even going back to the input menu (tho ideally get it going back to home now first too)
-        # will be easy enough to add in processing on pages now
-        # so best thing to do is first
-        # sort the scroll part and just run it to test, once it can do the whole battlelog without an major issues its so gravy, just continue
-        # also tho at this point do a big tidy and refactor as this basically will be 80% of the required functionality
-        # - can even finally start adding in pyqt5 (or even 6 tbf) once get this all laid down and working oooo
-        # - oh also quite critically make sure the whole fail safe of retaking photos n stuff is working fine, and also include it ticking them off in the list and actually confirming it with the list afterwards (then it can redo any it errored for example)
-        #   - basically just making sure it does actually loop back, think it does partially rn tho tbf or atleast for something, will confirm tho
-        # - during refactor get the timings for sleeps better (tbf as long as the looping back thing works fine at each sleep you can get the sleep to quite low)
-
-        # VIDEO RECORD ITS PROCESSING
-        # NEW BRANCH
-        # BASIC REPO README
-        # (tbf various other things too i.e job apps, finish other repo readmes, do the ae gif concept test repo too tbf)
-
-
-
-        # click dis
-        # go to leggy
-        # - change function name to save all leggy
-
-        # ---- can skip that above bit actually rn duh since its just one change but exact same formatting for everything bosh so... ---
-
-        # then its the whole storing things that are there and cropping etc
-        # so yh just first back to ig the way it was before but better
-        # - imo consider pyqt5 now (lol)
-        # - both in saved folders ting but then obvs also want to consider dataclasses idea too
-        # - start doing the champion image matching too
-
-        # then once they all get done perfectly incrementally 
-        # do the click thru thing and just ensure it works smoothly, clicking back out and moving on to the next one...
-
-    # -- reset everything now this entire bot action is completed --
+    # -- important - reset everything now this entire bot action is completed --
     user_action_select = 0
     is_bot_active = False
 
@@ -335,7 +302,7 @@ def run_bot_action_1(screenshot): # test af name obvs
 def run_bot_action_2(): # test af name obvs
     global is_bot_active, user_action_select
     print(f"2. {user_action_select = }")
-    user_action_select = 0 # [ IMPORTANT! ] => once actions are completed this must be reset too 
+    user_action_select = 0 
     is_bot_active = False
 
 
