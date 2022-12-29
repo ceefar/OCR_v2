@@ -136,7 +136,7 @@ def crop_img(img_array, x, y, width, height):
 def find_games_on_page(screenshot):
     # note : be smart and just decrement the confidence for the threshold on the back button if we cant find it?
     # note think will be best to actually crop out say the top the and process them this way or sumnt
-    global is_bot_active
+    global is_bot_active, matches_dict
     location_img_path = "test_imgs/profile_battlelog_game_info_btn.png"
     locs, find_img = get_template_matches_at_threshold(location_img_path, screenshot, 0.95) # 95 for 4, 96 for 3, 98 for 2
     rects = get_matched_rectangles(find_img, locs)
@@ -147,7 +147,11 @@ def find_games_on_page(screenshot):
     if points:
         matches_search_img = cv.cvtColor(returned_img, cv.COLOR_BGR2RGB)
         matches_search_img = Image.fromarray(matches_search_img)
-        matches_search_img.save(f"bot_test_imgs/matches_search_img.png")
+        # super duper temp obvs will do this properly in final version is just a waste of time doing it properly rn
+        if os.path.exists("bot_test_imgs/matches_search_img.png"): 
+            matches_search_img.save(f"bot_test_imgs/matches_search_img_2.png")
+        else:
+            matches_search_img.save(f"bot_test_imgs/matches_search_img.png")
         print(f"Found Selectable Matches")
         for found_match_btn_point in points:
             cropped_match_img = crop_img(returned_img, found_match_btn_point[0] - 1075, found_match_btn_point[1] - 53, 1203, 115)
@@ -219,7 +223,6 @@ def find_games_on_page(screenshot):
 def process_a_game(btn_pos, game_id):
     print(f"Processing Game {game_id}...")
     click_at_pos(btn_pos)
-    sleep(1)
     game_img = wincap.get_screencap()
     game_img = cv.cvtColor(game_img, cv.COLOR_BGR2RGB)
     game_img = Image.fromarray(game_img)
@@ -241,7 +244,7 @@ def click_at_pos(position):
     target = wincap.get_true_pos(position)
     pyautogui.moveTo(x = target[0], y = target[1])
     pyautogui.click()
-    sleep(4) # sleep at the end to give time for the screen to update from the interaction 
+    sleep(3) # sleep at the end to give time for the screen to update from the interaction 
     
 
 def get_bot_actions():
@@ -257,9 +260,11 @@ def get_bot_actions():
     print(f"")
     is_bot_active = False
 
+
+
 def run_bot_action_1(screenshot): 
 
-    global is_bot_active, user_action_select
+    global is_bot_active, user_action_select, matches_dict
     print(f"1. {user_action_select = }")
     
     go_to_profile = True
@@ -268,9 +273,10 @@ def run_bot_action_1(screenshot):
         # -- log actions progression --
         print(f"Attempting Navigation : Profile - Home ")
         # -- update the screenshot --
-        screenshot = wincap.get_screencap()
-        click_on_image(screenshot, "test_imgs/purenub_user_icon_test_withLevel_img.png", 0.99, "home")
+        screenshot = wincap.get_screencap() # dont think i need this one btw duhhh
+        click_on_image(screenshot, "test_imgs/purenub_user_icon_test_withLevel_img.png", 0.98, "home")
         sleep(4)
+        screenshot = wincap.get_screencap()
         success = confirm_at_page(screenshot, "profile_home")
         # -- if confirmed at location, continue --
         if success:
@@ -287,9 +293,16 @@ def run_bot_action_1(screenshot):
         # -- log actions progression --
         print(f"Attempting Navigation : Battlelog - All Matches")
         # -- update the screenshot, attempt clicking the image to go to battlelog, wait 4 seconds, check success  --
-        screenshot = wincap.get_screencap()
+        # screenshot = wincap.get_screencap() # << REMOVED QUICKLY TO TEST
         click_on_image(screenshot, "test_imgs/profile_match_history_btn.png", 0.99, "profile")
         sleep(5) 
+        
+        # new - click on all (so not current season), not guna add the confirm rn but obvs will do for final version 
+        print(f"New! - All Seasons Btn Testing")
+        screenshot = wincap.get_screencap()
+        click_on_image(screenshot, "test_imgs/all_seasons_2_btn.png", 0.99, "all_seasons")
+        sleep(5) 
+
         screenshot = wincap.get_screencap()
         was_successful, success_img = confirm_at_page(screenshot, "battlelog_all")
         # -- if page has been confirmed, break the loop and continue to processing games --
@@ -301,6 +314,7 @@ def run_bot_action_1(screenshot):
             success_img = Image.fromarray(success_img)
             success_img.save(f"bot_test_imgs/battlelog_all.png")
             
+
             # -- update the screenshot --
             screenshot = wincap.get_screencap()
             # -- find games on page, saving globally due to multi-threading (globals is just substantially easier implementation so im fine with it) --
@@ -324,10 +338,76 @@ def run_bot_action_1(screenshot):
                     pass
                 else:
                     # -- else all completed, so continue -- 
+                    print(f"Part 1 Matches Processed...")
+                    
+                    # K SO THIS DEFO NEEDS TO BE A LOOP SINCE ITS NOT SURE HOW MUCH SCROLL TO DO OR WHEN TO STOP
+                    # BUT JUST DOING IT INCREMENTALLY FIRST TO CONFIRM IT WORKS FINE
+                    # - could/should just have that all in a function and then just another func in a loop to confirm if should run again or if is done
+
+
+                    # -- scroll test stuff --
+                    print("STARTING SCROLL TEST")
+                    sleep(3) 
+
+                    # pyautogui.displayMousePosition()
+                    mouse_x, mouse_y = pyautogui.position()
+                    print("Mouse Initial Pos")
+                    print(f"{mouse_x} {mouse_y}")
+                    sleep(1.5)
+
+                    pyautogui.moveTo(x = mouse_x, y = mouse_y + 200) # scuffed positions before, this is actually at the back button so move down 
+                    mouse_x, mouse_y = pyautogui.position()
+                    print("Mouse Moved Pos, Starting Scroll...")
+                    print(f"{mouse_x} {mouse_y}")
+                    sleep(1.5)
+
+                    pyautogui.scroll(-240)
+                    print("Mouse Scrolled Pos")
+                    mouse_x, mouse_y = pyautogui.position()
+                    print(f"{mouse_x} {mouse_y}")
+
+                    # -- repeat of above for testing --
+                    print(f"{matches_dict = }")
+                    matches_dict = {} # wipe this for new scroll functionality testing
+                    # - could/should just have that all in a function and then just another func in a loop to confirm if should run again or if is done
+
+                    print(f"PART 2")
+                    sleep(5)
+
+                    # -- update the screenshot --
+                    screenshot = wincap.get_screencap()
+                    # -- find games on page, saving globally due to multi-threading (globals is just substantially easier implementation so im fine with it) --
+                    find_games_on_page(screenshot)
+                    print(f"{matches_dict = }")
+                    # -- process all the games on screen based on their info button and the game_id (which is just the datetime of the game) --
+                    while True:
+                        #
+                        for game_id, game_info_dict in matches_dict.items():
+                            was_processed = process_a_game(game_info_dict['btn_pos'], game_id)
+                            if was_processed:
+                                matches_dict[game_id]["processed"] = True
+                        # -- check after that all were processed, if any werent we'll do them again tho not actually doing that part yet lol, obvs will redo the below functionality when ik specifically how i want this to work, just leaving a basic switch case for now --
+                        any_false = False
+                        for game_info_dict in matches_dict.values():
+                            is_processed = game_info_dict["processed"]
+                            if not is_processed:
+                                any_false = True
+                                break
+                        if any_false:
+                            print(f"UH OH : NOT ALL WERE MATCHES PROCESSED!")
+                            pass
+                        else:
+                            # -- else all completed, so continue -- 
+                            print(f"Part 2 Matches Processed...")                            
+                            break
+
                     print(f"All Matches Processed...")
                     break
+
+
             # -- if all completed break this loop and continue (go to home?) --
             break
+
         else:
             print(f"Couldn't Confirm Page : Battlelog - All Matches\nTrying Again in 2 Seconds...") 
             sleep(2)
@@ -336,6 +416,14 @@ def run_bot_action_1(screenshot):
     print(f"{matches_dict = }")
     user_action_select = 0
     is_bot_active = False
+
+
+# ok so once working will do the loop for this
+# sumnt like set position
+# get matches on page
+# process matches
+# check for more matches
+# set position...
 
 
 def run_bot_action_2(): # test af name obvs
