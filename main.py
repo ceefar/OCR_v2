@@ -418,12 +418,12 @@ def run_bot_action_1(screenshot):
     is_bot_active = False
 
 
-# ok so once working will do the loop for this
-# sumnt like set position
-# get matches on page
-# process matches
-# check for more matches
-# set position...
+
+# rnrn 
+# fix images not matching up
+# then see paper notes 
+
+
 
 
 def run_bot_action_2(): # test af name obvs
