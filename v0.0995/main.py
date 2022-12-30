@@ -75,26 +75,6 @@ def confirm_at_homepage(screenshot):
     is_bot_active = False
 
 
-def wipe_folders():
-    folders_list = ["bot_test_imgs/"]
-    for folder_path in folders_list:
-        for file in os.listdir(folder_path):
-            print(file)
-            os.remove(f"{folder_path}{file}")
-
-
-def wipe_nested_folders():
-    folders_list = ["botted_test_imgs/"]
-    for folder_path in folders_list:
-        for nested_folder in os.listdir(folder_path):
-            for file in os.listdir(f"{folder_path}{nested_folder}"):
-                print(f"Deleted {file}")
-                # -- remove files in directories --
-                os.remove(f"{folder_path}{nested_folder}/{file}")
-            # -- then remove the empty directories too --
-            os.rmdir(f"{folder_path}{nested_folder}")
-
-
 def confirm_at_page(screenshot, page_name="profile_home"):
     # --
     global is_bot_active
@@ -241,7 +221,7 @@ def find_games_on_page(screenshot):
 
 
 def process_a_game(btn_pos, game_id):
-    print(f"Processing Game : {game_id}...")
+    print(f"Processing Game {game_id}...")
     click_at_pos(btn_pos)
     game_img = wincap.get_screencap()
     game_img = cv.cvtColor(game_img, cv.COLOR_BGR2RGB)
@@ -253,14 +233,14 @@ def process_a_game(btn_pos, game_id):
     rects = get_matched_rectangles(find_img, locs)
     points, _ = draw_points(rects, screenshot, "points")
     if points:
-        #print(f"Found Back Btn @ {points[0]}")
-        print(f"Complete. Returning To Battlelog\n")
+        print("Found Back Btn")
+        print(f"{points[0] = }")
         click_at_pos(points[0])
         return True
 
 
 def click_at_pos(position):
-    # print(f"Clicking @ {position}...")
+    print(f"Clicking @ {position}...")
     target = wincap.get_true_pos(position)
     pyautogui.moveTo(x = target[0], y = target[1])
     pyautogui.click()
@@ -360,8 +340,6 @@ def run_bot_action_1(screenshot):
                     # -- else all completed, so continue -- 
                     print(f"Part 1 Matches Processed...")
                     
-
-
                     # -- loop dis tho --
 
                     # -- scroll test stuff --
@@ -380,7 +358,7 @@ def run_bot_action_1(screenshot):
                     print(f"{mouse_x} {mouse_y}")
                     sleep(1.5)
 
-                    pyautogui.scroll(-212) # 215?
+                    pyautogui.scroll(-220)
                     print("Mouse Scrolled Pos")
                     mouse_x, mouse_y = pyautogui.position()
                     print(f"{mouse_x} {mouse_y}")
@@ -425,7 +403,6 @@ def run_bot_action_1(screenshot):
 
                     print(f"All Matches Processed...")
                     break
-
 
             # -- important - reset everything now this entire bot action is completed --
             print(f"{matches_dict = }")
@@ -477,9 +454,6 @@ def click_on_image(screenshot, path_to_img, threshold=0.99, file_name="test"):
 
 
 
-# -- wipe folders first --
-wipe_folders()
-wipe_nested_folders()
 
 # -- main - loop until quit --
 while True:
