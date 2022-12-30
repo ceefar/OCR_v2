@@ -311,7 +311,6 @@ def scroll_battlelog_matches():
 def run_bot_action_1(screenshot): 
 
     global is_bot_active, user_action_select, matches_dict, all_processed_matches_list
-    print(f"NEW THREAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD")
     print(f"1. {user_action_select = }")
 
     # temp for testing
