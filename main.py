@@ -1,3 +1,11 @@
+# -- author --
+# ceefar
+
+# -- note --
+# now this works refactoring in a new project as i actually dont need multi-threading for my original purpose
+# but will add it back in future in a refactor for a true portfolio project, 
+# this is puurely a personal x learning project  
+
 # -- external imports --
 import cv2 as cv # for img manipulation, etc
 import numpy as np # for array conversion 
@@ -298,7 +306,7 @@ def scroll_battlelog_matches():
     print(f"{mouse_x} {mouse_y}")
     sleep(1.5)
 
-    pyautogui.scroll(-205) # 215?
+    pyautogui.scroll(-100) # 215?
     print("Mouse Scrolled Pos")
     mouse_x, mouse_y = pyautogui.position()
     print(f"{mouse_x} {mouse_y}")
